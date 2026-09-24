@@ -2,7 +2,35 @@
 
 Research snapshot: 24 September 2026.
 
-This repository is reserved for a Terra Invicta mod. Before implementation, choose the smallest extension mechanism that can deliver the feature:
+## Local game installation: strictly read-only
+
+The local Terra Invicta installation is at `G:\SteamLibrary\steamapps\common\Terra Invicta` (WSL path: `/mnt/g/SteamLibrary/steamapps/common/Terra Invicta`). Its files may be inspected to support development, but the entire installation must remain **strictly read-only**. Do not edit, delete, replace, or create files there, install or deploy mods there, or run tooling that writes there. Keep generated files and development outputs in this repository or a temporary directory.
+
+## Give up Nation
+
+This repository now implements **Give up Nation**: a button beside **Abandon Nation** in the Policies tab, enabled only when the player owns the executive control point. A confirmation popup explains that only the executive will become unowned; the player's other control points remain theirs.
+
+See the [user guide](docs/USER-GUIDE.md) and [implementation and validation notes](docs/implementation.md). This is a C# Harmony/Unity Mod Manager mod, built against the installed game assemblies as read-only references. The user reported that the UI works in-game with v0.1.1; executive-release side effects and save/load remain unverified.
+
+Build, run offline checks, and create a ZIP using Python 3.11+ and the .NET 8 SDK:
+
+```powershell
+python tools/build.py --game-dir 'G:\SteamLibrary\steamapps\common\Terra Invicta'
+```
+
+Under WSL:
+
+```bash
+python3 tools/build.py --game-dir '/mnt/g/SteamLibrary/steamapps/common/Terra Invicta'
+```
+
+Use `--dotnet /path/to/dotnet` for a non-PATH SDK, and `--no-restore` after dependencies have been restored. Outputs go to `src/Mod/bin`, `tests/bin`, `.local`, and `artifacts`. The package is `artifacts/Local.GiveUpNation-0.1.1.zip`. The build tool has no deployment or game-launch operation.
+
+## Modding research reference
+
+The research below predates this implementation. Template setup, deployment, and runtime-test commands shown here are reference material and must **not** be run against the protected installation. This project uses `tools/build.py` instead.
+
+Choose the smallest extension mechanism that can deliver a feature:
 
 | Requirement | Mod type | Player dependency |
 |---|---|---|
@@ -150,14 +178,6 @@ Static data belongs in templates. Persisted runtime data belongs in game state a
 - [Steam guide: How to install and use mods for Terra Invicta](https://steamcommunity.com/sharedfiles/filedetails/?id=3260872800): current player installation behavior for native and code mods.
 - [elordis/ti_tools](https://github.com/elordis/ti_tools): auxiliary tools for working with Terra Invicta template data.
 
-## Next decision
+## Next validation step
 
-Define the first player-visible feature before initializing the scaffold. Record:
-
-- exact behavior and values;
-- campaigns, factions, and DLC it applies to;
-- whether existing saves must be supported;
-- whether it needs only templates/localization or runtime code;
-- an observable acceptance test.
-
-That feature definition determines whether this workspace should start as `Native`, `Code`, or `Hybrid` and prevents committing to a brittle code patch unnecessarily.
+The first feature is implemented as a code mod. In-game validation remains outstanding; see the acceptance checklist in [implementation notes](docs/implementation.md). It requires an authorized test installation, while the specified local installation remains strictly read-only.

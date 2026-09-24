@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../src/Mod/ReleaseRequest.cs" Link="ReleaseRequest.cs" />
+    <Compile Include="ReleaseRequestTests.cs" />
+  </ItemGroup>
+</Project>
