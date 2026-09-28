@@ -1,4 +1,4 @@
-# Give up Nation — 0.3.0
+# Give up Nation — 0.3.1
 
 Adds **Give up Nation** beside **Abandon Nation** in the nation's Policies tab. The existing Auto-Renew Abandon checkbox remains on the row below.
 
@@ -12,9 +12,10 @@ The Solar System screen also has three status checkboxes on a second filter row:
 
 - **Filter Prospected**: survey completed for your faction.
 - **Filter Unprospected**: survey incomplete, with no probe en route or fleet surveying.
+- **Filter Prospectable**: survey incomplete and idle, with the game's native probe-target eligibility satisfied.
 - **Filter Prospecting**: survey incomplete, with your probe en route or your fleet actively surveying.
 
-Check multiple boxes to include those statuses together. Check none to show all statuses. For example, Unprospected + Prospecting shows everything not yet completed. Location, faction, and text filters still apply. Status changes are checked once a second while the screen is open; the two new selections reset when the current faction changes or the mod is disabled. They are not saved in campaigns. The two new labels are English.
+Check multiple boxes to include those statuses together. Check none to show all statuses. For example, Unprospected + Prospectable + Prospecting shows everything not yet completed. Location, faction, and text filters still apply. Status changes are checked once a second while the screen is open; the three added selections reset when the current faction changes or the mod is disabled. They are not saved in campaigns. The three added labels are English.
 
 These are display filters. **Probe All** retains its native target selection and may include bodies hidden by your filters.
 

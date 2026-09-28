@@ -11,14 +11,14 @@ namespace GiveUpNation
     {
         private const float RowHeight = 34f;
         private IntelScreenController controller;
-        private Toggle unprospected, prospecting;
+        private Toggle unprospected, prospectable, prospecting;
         private GameObject staging;
         private readonly List<RectState> layout = new List<RectState>();
         private readonly Dictionary<TISpaceBodyState, ProspectingStatus> statuses = new Dictionary<TISpaceBodyState, ProspectingStatus>();
         private TIFactionState player;
         private bool cleaned;
         internal bool Ready { get; private set; }
-        internal bool HasAdditionalSelection => Ready && (unprospected.isOn || prospecting.isOn);
+        internal bool HasAdditionalSelection => Ready && (unprospected.isOn || prospectable.isOn || prospecting.isOn);
 
         internal void Initialize(IntelScreenController owner)
         {
@@ -42,6 +42,7 @@ namespace GiveUpNation
             staging.SetActive(false);
             staging.transform.SetParent(upper, false);
             unprospected = Clone(original, "Unprospected", "Filter Unprospected");
+            prospectable = Clone(original, "Prospectable", "Filter Prospectable");
             prospecting = Clone(original, "Prospecting", "Filter Prospecting");
 
             Remember(upper);
@@ -61,9 +62,11 @@ namespace GiveUpNation
             originalRect.anchorMin = originalRect.anchorMax = new Vector2(0, 1);
             originalRect.anchoredPosition = new Vector2(8, -RowHeight * 1.5f);
             unprospected.transform.SetParent(upper, false);
+            prospectable.transform.SetParent(upper, false);
             prospecting.transform.SetParent(upper, false);
             PositionClones();
             unprospected.gameObject.SetActive(true);
+            prospectable.gameObject.SetActive(true);
             prospecting.gameObject.SetActive(true);
             Destroy(staging);
             staging = null;
@@ -94,7 +97,7 @@ namespace GiveUpNation
         internal bool Matches(TIFactionState faction, TISpaceBodyState body)
         {
             return ProspectingSelection.Matches(ProspectingState.GetStatus(faction, body), controller.filterProspected.isOn,
-                unprospected.isOn, prospecting.isOn);
+                unprospected.isOn, prospectable.isOn, prospecting.isOn);
         }
 
         internal void Tick()
@@ -105,6 +108,7 @@ namespace GiveUpNation
             {
                 player = controller.activePlayer;
                 unprospected.SetIsOnWithoutNotify(false);
+                prospectable.SetIsOnWithoutNotify(false);
                 prospecting.SetIsOnWithoutNotify(false);
                 statuses.Clear();
                 RefreshList();
@@ -146,7 +150,7 @@ namespace GiveUpNation
         {
             var original = (RectTransform)controller.filterProspected.transform;
             float x = original.anchoredPosition.x + Width(controller.filterProspected) + 12;
-            foreach (var toggle in new[] { unprospected, prospecting })
+            foreach (var toggle in new[] { unprospected, prospectable, prospecting })
             {
                 var rect = (RectTransform)toggle.transform;
                 rect.anchorMin = rect.anchorMax = new Vector2(0, 1);
@@ -168,7 +172,7 @@ namespace GiveUpNation
             cleaned = true;
             bool wasReady = Ready;
             Ready = false;
-            foreach (var toggle in new[] { unprospected, prospecting })
+            foreach (var toggle in new[] { unprospected, prospectable, prospecting })
             {
                 if (toggle == null) continue;
                 toggle.onValueChanged.RemoveListener(OnChanged);

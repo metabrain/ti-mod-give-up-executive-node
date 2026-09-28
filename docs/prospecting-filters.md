@@ -2,7 +2,7 @@
 
 Request: https://github.com/metabrain/ti-mod-give-up-executive-node/issues/2
 
-Version 0.3.0 adds Filter Unprospected and Filter Prospecting to Intel → Solar System. The original Filter Prospected is retained. Selected statuses are ORed together; no selection includes all statuses. Existing location, faction, and name/resource/description filters continue to narrow the result. These controls change only list visibility, not surveys, probe launches, or saves.
+Version 0.3.1 adds Filter Unprospected, Filter Prospectable, and Filter Prospecting to Intel → Solar System. The original Filter Prospected is retained. Selected statuses are ORed together; no selection includes all statuses. Existing location, faction, and name/resource/description filters continue to narrow the result. These controls change only list visibility, not surveys, probe launches, or saves.
 
 ## Installed-game evidence
 
@@ -12,6 +12,7 @@ Inspected `Assembly-CSharp.dll` SHA-256: `4a4b9aae4154e444e9727204205d2d42ae8ed9
 - `UpdateSpaceBodySort` calls visibility filtering before `UpdateSpaceBodyListModelData`, which submits models to the virtualized list adapter. Filtering visible GameObjects afterward would miss hidden and recycled rows.
 - `UpdateProspectedFilter` plays the native toggle sound and invokes the normal sort/refresh path. New checkbox callbacks use that method.
 - `TIFactionState.Prospected(TISpaceBodyState)` tests faction intel >= 1. `ProspectorEnRoute` tests intel >= 0.1 and not already prospected. `FleetSurveyingPlanet` examines that faction's current fleet operations for `SurveyPlanetFromFleetOperation` targeting the body. Completed knowledge takes priority over any remaining survey operation.
+- `TIFactionState.CanProspectWithProbe(spaceBody, false)` is the native probe-target eligibility predicate: the body has hab sites, is colonization-eligible, is not prospected, is not fleet-surveyed, and has no probe en route. The filter does not add affordability checks.
 - `SetProbeAllButton` gets targets from `LaunchAllProbeOperation`, independently of list visibility. This feature does not alter that operation.
 
 Read-only serialized UI inspection used UnityPy 1.25.0. All followed pointers were local to the same serialized file (`m_FileID == 0`). The native toggle is in a 34-unit-high top-anchored Upper Container, alongside three right-anchored search/dropdown controls totaling approximately 762 units. Its label is the root TextMeshProUGUI referenced by `filterProspectedText`, with a ContentSizeFitter and 24/8-unit text margins. Its child Label is disabled. The toggle has no ToggleGroup; its persistent callback targets `UpdateProspectedFilter`. Other scripts are UITextStyle and UIToggleFeedback, with no tutorial component on the cloned subtree. The Lower Container stretches beneath the filter bar and contains the list adapter.
@@ -22,7 +23,7 @@ Read-only serialized UI inspection used UnityPy 1.25.0. All followed pointers we
 
 The transpiler replaces exactly the native toggle getter and the body-specific `Prospected` call inside the visibility method with controller-aware helpers. It preserves native branch targets and the remaining filters. It requires exactly one matching gate and predicate in the expected order; an unexpected method shape rejects the patch. Controllers without a ready attached UI and a disabled mod retain native behavior.
 
-`ProspectingFiltersUi` clones the native toggle twice under an inactive staging parent, replaces the entire `onValueChanged` event, and clears group membership and selection before activation. The original toggle and callback remain intact. The container grows by 34 units, existing mid-anchored controls are compensated to retain their position, and the list's top moves down by 34 units while its bottom stays fixed. All three status controls sit together on the new row; their spacing follows actual/preferred label widths. The layout is checked before mutation, saved, and restored on cleanup.
+`ProspectingFiltersUi` clones the native toggle three times under an inactive staging parent, replaces the entire `onValueChanged` event, and clears group membership and selection before activation. The original toggle and callback remain intact. The container grows by 34 units, existing mid-anchored controls are compensated to retain their position, and the list's top moves down by 34 units while its bottom stays fixed. All four status controls sit together on the new row; their spacing follows actual/preferred label widths. The layout is checked before mutation, saved, and restored on cleanup.
 
 While the Solar System screen is active and any status is selected, a once-per-second scan compares statuses for all models, including hidden bodies. A change reruns visibility and updates the adapter without changing sort selection. Current-player changes clear the additional selections and cached statuses. Reopening the same screen preserves the selections. Disabling removes owned UI/listeners, restores geometry and native filtering, and clears transient state. No save fields are introduced.
 

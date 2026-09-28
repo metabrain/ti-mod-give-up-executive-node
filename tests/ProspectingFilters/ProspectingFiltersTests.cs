@@ -21,13 +21,14 @@ internal static class Program
     {
         var body = new TISpaceBodyState();
         var faction = new TIFactionState();
-        for (int state = 0; state < 8; state++)
+        for (int state = 0; state < 16; state++)
         {
             faction.Completed = (state & 1) != 0;
             faction.Probe = (state & 2) != 0;
             faction.Fleet = (state & 4) != 0;
+            faction.CanProbe = (state & 8) != 0;
             var expected = faction.Completed ? ProspectingStatus.Prospected
-                : (faction.Probe || faction.Fleet ? ProspectingStatus.Prospecting : ProspectingStatus.Unprospected);
+                : (faction.Probe || faction.Fleet ? ProspectingStatus.Prospecting : faction.CanProbe ? ProspectingStatus.Prospectable : ProspectingStatus.Unprospected);
             Check(ProspectingState.GetStatus(faction, body) == expected, "native status mapping " + state);
         }
 
@@ -40,19 +41,24 @@ internal static class Program
 
         // Execute the actual rewritten IL against game stand-ins, including the
         // unmodified native "other filter" branch after the status condition.
-        string[] expectedStatuses = { "UPC", "C", "U", "UC", "P", "PC", "UP", "UPC" };
-        for (int selection = 0; selection < 8; selection++)
+        for (int selection = 0; selection < 16; selection++)
         {
             controller.filterProspected.isOn = (selection & 1) != 0;
             controller.Ui.Unprospected = (selection & 2) != 0;
             controller.Ui.Prospecting = (selection & 4) != 0;
-            for (int state = 0; state < 8; state++)
+            controller.Ui.Prospectable = (selection & 8) != 0;
+            string expectedStatuses = ((selection & 1) != 0 ? "C" : "")
+                + ((selection & 2) != 0 ? "U" : "")
+                + ((selection & 4) != 0 ? "P" : "")
+                + ((selection & 8) != 0 ? "Q" : "");
+            for (int state = 0; state < 16; state++)
             {
                 faction.Completed = (state & 1) != 0;
                 faction.Probe = (state & 2) != 0;
                 faction.Fleet = (state & 4) != 0;
-                char category = faction.Completed ? 'C' : faction.Probe || faction.Fleet ? 'P' : 'U';
-                Check(visible(controller, faction, body, true) == expectedStatuses[selection].Contains(category),
+                faction.CanProbe = (state & 8) != 0;
+                char category = faction.Completed ? 'C' : faction.Probe || faction.Fleet ? 'P' : faction.CanProbe ? 'Q' : 'U';
+                Check(visible(controller, faction, body, true) == (expectedStatuses.Length == 0 || expectedStatuses.Contains(category)),
                     $"combined filters selection={selection} state={state}");
                 Check(!visible(controller, faction, body, false), "other native filters still exclude rows");
             }
@@ -61,6 +67,7 @@ internal static class Program
         controller.filterProspected.isOn = false;
         controller.Ui.Unprospected = false;
         controller.Ui.Prospecting = true;
+        controller.Ui.Prospectable = false;
         faction.Completed = faction.Probe = faction.Fleet = false;
         Check(!visible(controller, faction, body, true), "not started excluded from underway");
         faction.Probe = true;
@@ -72,6 +79,14 @@ internal static class Program
         Check(visible(controller, faction, body, true), "fleet-only survey included");
         faction.Fleet = false;
         Check(!visible(controller, faction, body, true), "cancelled fleet survey removed");
+        controller.Ui.Prospecting = false;
+        controller.Ui.Prospectable = true;
+        faction.CanProbe = true;
+        Check(visible(controller, faction, body, true), "eligible unstarted body is prospectable");
+        faction.CanProbe = false;
+        Check(!visible(controller, faction, body, true), "ineligible unstarted body is not prospectable");
+        controller.Ui.Prospectable = false;
+        controller.Ui.Prospecting = true;
         var secondPlayer = new TIFactionState { Probe = true };
         Check(visible(controller, secondPlayer, body, true), "classification follows current faction");
         Check(!visible(controller, faction, body, true), "no cached other-faction knowledge");
@@ -159,10 +174,11 @@ namespace PavonisInteractive.TerraInvicta
     public class TISpaceBodyState { }
     public class TIFactionState
     {
-        public bool Completed, Probe, Fleet;
+        public bool Completed, Probe, Fleet, CanProbe;
         public bool Prospected(TISpaceBodyState body) => Completed;
         public bool ProspectorEnRoute(TISpaceBodyState body) => Probe;
         public bool FleetSurveyingPlanet(TISpaceBodyState body) => Fleet;
+        public bool CanProspectWithProbe(TISpaceBodyState body, bool allowOvertake) => CanProbe;
     }
     public class IntelScreenController
     {
@@ -180,10 +196,10 @@ namespace GiveUpNation
     internal static class Main { internal static bool Enabled = true; }
     internal class ProspectingFiltersUi
     {
-        internal bool Ready = true, Unprospected, Prospecting;
+        internal bool Ready = true, Unprospected, Prospectable, Prospecting;
         internal Toggle Original;
-        internal bool HasAdditionalSelection => Ready && (Unprospected || Prospecting);
+        internal bool HasAdditionalSelection => Ready && (Unprospected || Prospectable || Prospecting);
         internal bool Matches(TIFactionState faction, TISpaceBodyState body) => ProspectingSelection.Matches(
-            ProspectingState.GetStatus(faction, body), Original.isOn, Unprospected, Prospecting);
+            ProspectingState.GetStatus(faction, body), Original.isOn, Unprospected, Prospectable, Prospecting);
     }
 }

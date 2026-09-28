@@ -14,6 +14,8 @@ Version 0.2.3 also adds the scheduled survey completion date and days remaining 
 
 Version 0.3.0 adds **Filter Unprospected** and **Filter Prospecting** alongside the existing **Filter Prospected** in a second filter row ([issue #2](https://github.com/metabrain/ti-mod-give-up-executive-node/issues/2)). Selected statuses combine inclusively; no status selected shows all bodies. Unprospected excludes surveys underway, and Prospecting includes probes and fleet surveys belonging to the current player. See [implementation and verification notes](docs/prospecting-filters.md). This feature passed the offline checks, and the user confirmed that the installed v0.3.0 filters work in-game.
 
+Version 0.3.1 adds **Filter Prospectable**, matching the game's native `CanProspectWithProbe(body, false)` target eligibility. It separates valid, currently idle probe targets from bodies that are unprospected but unavailable for probing.
+
 See the [user guide](docs/USER-GUIDE.md) and [implementation and validation notes](docs/implementation.md). This is a C# Harmony/Unity Mod Manager mod, built against the installed game assemblies as read-only references. The user reported that the UI works in-game with v0.1.1; executive-release side effects and save/load remain unverified.
 
 Build, run offline checks, and create a ZIP using Python 3.11+ and the .NET 8 SDK:
@@ -28,7 +30,7 @@ Under WSL:
 python3 tools/build.py --game-dir '/mnt/g/SteamLibrary/steamapps/common/Terra Invicta'
 ```
 
-Use `--dotnet /path/to/dotnet` for a non-PATH SDK, and `--no-restore` after dependencies have been restored. Outputs go to `src/Mod/bin`, `tests/**/bin`, `.local`, and `artifacts`. The package is `artifacts/Local.GiveUpNation-0.3.0.zip`. The build tool has no deployment or game-launch operation.
+Use `--dotnet /path/to/dotnet` for a non-PATH SDK, and `--no-restore` after dependencies have been restored. Outputs go to `src/Mod/bin`, `tests/**/bin`, `.local`, and `artifacts`. The package is `artifacts/Local.GiveUpNation-0.3.1.zip`. The build tool has no deployment or game-launch operation.
 
 ## Modding research reference
 
