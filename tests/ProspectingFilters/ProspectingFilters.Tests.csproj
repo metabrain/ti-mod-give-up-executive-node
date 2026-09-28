@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/Mod/ProspectingStatus.cs" Link="ProspectingStatus.cs" />
+    <Compile Include="../../src/Mod/ProspectingState.cs" Link="ProspectingState.cs" />
+    <Compile Include="../../src/Mod/ProspectingFilterPatch.cs" Link="ProspectingFilterPatch.cs" />
+    <Compile Include="ProspectingFiltersTests.cs" />
+    <Reference Include="0Harmony">
+      <HintPath>$(TerraInvictaDir)/TerraInvicta_Data/Managed/UnityModManager/0Harmony.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

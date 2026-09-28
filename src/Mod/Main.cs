@@ -20,7 +20,11 @@ namespace GiveUpNation
             harmony = new Harmony(entry.Info.Id);
             entry.OnToggle = Toggle;
             entry.OnUnload = e => Toggle(e, false);
-            entry.OnUpdate = (e, elapsed) => ProbeArrivalRuntime.Update(elapsed);
+            entry.OnUpdate = (e, elapsed) =>
+            {
+                ProbeArrivalRuntime.Update(elapsed);
+                ProspectingFiltersRuntime.Update(elapsed);
+            };
             return true;
         }
 
@@ -34,6 +38,7 @@ namespace GiveUpNation
                     harmony.PatchAll(Assembly.GetExecutingAssembly());
                     Enabled = true;
                     ProbeArrivalRuntime.Reset();
+                    ProspectingFiltersRuntime.Reset();
                     foreach (var controller in Resources.FindObjectsOfTypeAll<NationInfoController>())
                         if (controller.gameObject.scene.IsValid()) Attach(controller);
 
@@ -42,6 +47,7 @@ namespace GiveUpNation
                 {
                     Enabled = false;
                     ProbeArrivalRuntime.Reset();
+                    ProspectingFiltersRuntime.Reset();
                     foreach (var ui in Resources.FindObjectsOfTypeAll<GiveUpNationUi>()) ui.Cleanup();
                     foreach (var tooltip in Resources.FindObjectsOfTypeAll<ProbeArrivalTooltip>()) tooltip.Cleanup();
                     harmony.UnpatchAll(entry.Info.Id);
@@ -52,6 +58,7 @@ namespace GiveUpNation
             {
                 Enabled = false;
                 ProbeArrivalRuntime.Reset();
+                ProspectingFiltersRuntime.Reset();
                 harmony.UnpatchAll(entry.Info.Id);
                 foreach (var ui in Resources.FindObjectsOfTypeAll<GiveUpNationUi>()) ui.Cleanup();
                 foreach (var tooltip in Resources.FindObjectsOfTypeAll<ProbeArrivalTooltip>()) tooltip.Cleanup();

@@ -5,13 +5,13 @@
     <LangVersion>12.0</LangVersion>
     <AssemblyName>Local.GiveUpNation</AssemblyName>
     <RootNamespace>GiveUpNation</RootNamespace>
-    <Version>0.2.3</Version>
+    <Version>0.3.0</Version>
     <Deterministic>true</Deterministic>
     <ManagedDir>$(TerraInvictaDir)/TerraInvicta_Data/Managed</ManagedDir>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
-    <Reference Include="Assembly-CSharp;Assembly-CSharp-firstpass;UnityEngine;UnityEngine.CoreModule;UnityEngine.UI;UnityEngine.UIModule;Unity.TextMeshPro;UnityEngine.InputLegacyModule">
+    <Reference Include="Assembly-CSharp;Assembly-CSharp-firstpass;OSA.Core;UnityEngine;UnityEngine.CoreModule;UnityEngine.UI;UnityEngine.UIModule;Unity.TextMeshPro;UnityEngine.InputLegacyModule">
       <HintPath>$(ManagedDir)/%(Identity).dll</HintPath>
       <Private>false</Private>
     </Reference>
