@@ -14,7 +14,7 @@ namespace GiveUpNation
             if (arrival == null) return null;
             return Loc.T("UI.Space.ProspectorEnRoute") + "\n"
                 + Loc.T("UI.Space.ProbeArrival", new object[] { arrival.ToCustomDateString() })
-                + "\nDays remaining: " + Math.Ceiling(Math.Max(0, arrival.DifferenceInDays(TITimeState.Now()))).ToString("0");
+                + " (" + Math.Max(0, arrival.DifferenceInDays(TITimeState.Now())).ToString("0.0") + " days)";
         }
     }
 }

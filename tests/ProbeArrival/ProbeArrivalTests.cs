@@ -50,7 +50,7 @@ internal static class Tests
         Test("no scheduled probe has no date", () => Check(ProbeArrivalText.Build(f, body) == null));
         Test("in-flight probe uses scheduled date and game formatter", () => {
             f.Arrivals[body] = new TIDateTime { Formatted = "12 March 2031" };
-            Check(ProbeArrivalText.Build(f, body) == "Prospector Probe En Route\nSurvey Completion: 12 March 2031\nDays remaining: 0");
+            Check(ProbeArrivalText.Build(f, body) == "Prospector Probe En Route\nSurvey Completion: 12 March 2031 (0.0 days)");
         });
         Test("replacement probe date is read afresh", () => {
             f.Arrivals[body] = new TIDateTime { Formatted = "1 February 2031" };
@@ -67,23 +67,23 @@ internal static class Tests
             f.Arrivals.Remove(body);
             Check(ProbeArrivalText.Build(f, body) == null);
         });
-        Test("remaining days round up and follow the current campaign clock", () => {
+        Test("remaining days show decimals and follow the current campaign clock", () => {
             f.Arrivals[body] = new TIDateTime { Formatted = "future", Day = 42.5 };
             TITimeState.Current.Day = 40;
-            Check(ProbeArrivalText.Build(f, body).EndsWith("Days remaining: 3"));
+            Check(ProbeArrivalText.Build(f, body).EndsWith("(2.5 days)"));
             TITimeState.Current.Day = 42;
-            Check(ProbeArrivalText.Build(f, body).EndsWith("Days remaining: 1"));
+            Check(ProbeArrivalText.Build(f, body).EndsWith("(0.5 days)"));
             TITimeState.Current.Day = 42.5;
-            Check(ProbeArrivalText.Build(f, body).EndsWith("Days remaining: 0"));
+            Check(ProbeArrivalText.Build(f, body).EndsWith("(0.0 days)"));
             TITimeState.Current.Day = 43;
-            Check(ProbeArrivalText.Build(f, body).EndsWith("Days remaining: 0"));
+            Check(ProbeArrivalText.Build(f, body).EndsWith("(0.0 days)"));
             TITimeState.Current.Day = 0;
         });
         Test("native localization is applied to both lines", () => {
             Loc.Text["UI.Space.ProspectorEnRoute"] = "Sonde en route";
             Loc.Text["UI.Space.ProbeArrival"] = "Fin du relevé : {0}";
             f.Arrivals[body] = new TIDateTime { Formatted = "2 mai 2031" };
-            Check(ProbeArrivalText.Build(f, body) == "Sonde en route\nFin du relevé : 2 mai 2031\nDays remaining: 0");
+            Check(ProbeArrivalText.Build(f, body) == "Sonde en route\nFin du relevé : 2 mai 2031 (0.0 days)");
         });
         Test("disabled mod does not inspect game readiness", () => {
             var scheduler = new ProbeScanScheduler();

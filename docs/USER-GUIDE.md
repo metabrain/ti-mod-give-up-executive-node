@@ -1,4 +1,4 @@
-# Give up Nation — 0.2.2
+# Give up Nation — 0.2.3
 
 Adds **Give up Nation** beside **Abandon Nation** in the nation's Policies tab. The existing Auto-Renew Abandon checkbox remains on the row below.
 
@@ -12,10 +12,12 @@ This mod adds no campaign save fields. Ownership changes use native game state a
 
 Requires Terra Invicta and Unity Mod Manager 0.32.4 or later, with the Terra Invicta profile using `Mods/Enabled` and `ModInfo.json`. Compiled against the locally inspected installation; compatibility with other game builds is unverified.
 
-**Build status:** compiled with 13 passing offline confirmation/action checks and 17 probe-tooltip data/startup checks. The user confirmed the v0.2.1 date tooltip in-game; v0.2.2 days-remaining testing is underway. After the 0.1.1 popup-initialization fix, the user reported that the UI works in-game. Executive-release side effects and save/load still need verification. The game installation remains read-only except for explicitly authorized installation/update of this mod; the build tool never deploys to it.
+**Build status:** compiled with 13 passing offline confirmation/action checks and 17 probe-tooltip data/startup checks. The user confirmed the v0.2.1 date tooltip in-game; the user also confirmed v0.2.2 days remaining works. The v0.2.3 inline formatting awaits in-game verification. After the 0.1.1 popup-initialization fix, the user reported that the UI works in-game. Executive-release side effects and save/load still need verification. The game installation remains read-only except for explicitly authorized installation/update of this mod; the build tool never deploys to it.
 
 Created using https://github.com/Laurentiu-Andronache/ti-mod-template
 
 Version 0.2.1 fixes the v0.2.0 startup exception by attaching probe tooltips after game loading completes, without patching the probe list refresh method. A full restart is required after updating from the failed version.
 
 Version 0.2.2 adds a `Days remaining` line using the scheduled arrival minus `TITimeState.Now()` via `TIDateTime.DifferenceInDays`. Partial days round up; due or overdue arrivals show zero. The existing hover/half-second refresh recalculates this from campaign time. This added label is English; the original two lines retain native localization.
+
+Version 0.2.3 places the remaining time after the date, for example `Survey Completion: 04 September 2008 (225.5 days)`. It shows one decimal place instead of rounding up to whole days. The `days` suffix is English.

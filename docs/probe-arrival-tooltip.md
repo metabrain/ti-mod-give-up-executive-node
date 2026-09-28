@@ -18,7 +18,7 @@ UMM OnUpdate waits for `GameControl.loadcycle100`, a current player, and Tooltip
 
 The surface is active only while the icon is visible, the launch/replacement button is hidden, and the current player has a scheduled probe arrival for that row's current body. It reads the current body/player at hover time instead of capturing a recycled row's original data. A half-second check on each active row clear outdated data and update an open tooltip after schedule changes. The surface is disabled with its row and removed on mod disable/cleanup. Initialization failures are logged once per affected component.
 
-This ships in the existing Local.GiveUpNation package as v0.2.2; the existing executive-release feature remains available.
+This ships in the existing Local.GiveUpNation package as v0.2.3; the existing executive-release feature remains available.
 
 ## Validation
 
@@ -46,4 +46,6 @@ Seven additional offline scheduler checks cover disabled/startup gating, throttl
 
 Version 0.2.2 adds a `Days remaining` line using the scheduled arrival minus `TITimeState.Now()` via `TIDateTime.DifferenceInDays`. Partial days round up; due or overdue arrivals show zero. The existing hover/half-second refresh recalculates this from campaign time. This added label is English; the original two lines retain native localization.
 
-The v0.2.2 build passed all 30 offline checks (13 executive-action and 17 probe data/startup checks), with zero compiler warnings/errors. Its five mod files were installed and verified after backing up v0.2.1. User runtime testing of the days-remaining line is underway.
+The v0.2.2 build passed all 30 offline checks (13 executive-action and 17 probe data/startup checks), with zero compiler warnings/errors. Its five mod files were installed and verified after backing up v0.2.1. The user confirmed the days-remaining line works in-game.
+
+Version 0.2.3 replaces the separate days line with a parenthesized duration after the date, formatted to one decimal place (e.g. `225.5 days`). Negative values remain clamped to zero; timing and refresh behavior are unchanged. In-game verification of the revised layout remains pending.

@@ -5,7 +5,7 @@
     <LangVersion>12.0</LangVersion>
     <AssemblyName>Local.GiveUpNation</AssemblyName>
     <RootNamespace>GiveUpNation</RootNamespace>
-    <Version>0.2.2</Version>
+    <Version>0.2.3</Version>
     <Deterministic>true</Deterministic>
     <ManagedDir>$(TerraInvictaDir)/TerraInvicta_Data/Managed</ManagedDir>
   </PropertyGroup>
