@@ -1,0 +1,4 @@
+interface:
+  display_name: "Terra Invicta Modding"
+  short_description: "Inspect, build, package, and debug Terra Invicta mods"
+  default_prompt: "Use $terra-invicta-modding to build a Terra Invicta mod from installed-game evidence, keeping inspection and deployment separate."

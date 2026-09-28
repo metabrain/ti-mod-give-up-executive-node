@@ -17,7 +17,7 @@ def main():
     parser.add_argument('--no-restore', action='store_true', help='Use previously restored packages')
     args = parser.parse_args()
     game = args.game_dir.resolve()
-    for directory in (ROOT / '.local', ROOT / 'artifacts', ROOT / 'src/Mod/bin', ROOT / 'src/Mod/obj', ROOT / 'tests/bin', ROOT / 'tests/obj'):
+    for directory in (ROOT / '.local', ROOT / 'artifacts', ROOT / 'src/Mod/bin', ROOT / 'src/Mod/obj', ROOT / 'tests/bin', ROOT / 'tests/obj', ROOT / 'tests/ProbeArrival/bin', ROOT / 'tests/ProbeArrival/obj'):
         resolved = directory.resolve()
         if not resolved.is_relative_to(ROOT) or resolved.is_relative_to(game):
             parser.error(f'Output must remain in the workspace, outside the game: {resolved}')
@@ -36,6 +36,7 @@ def main():
         subprocess.run([args.dotnet, *command], cwd=ROOT, env=env, check=True)
     run('build', 'src/Mod/Mod.csproj', '-c', 'Release', '--nologo', f'-p:TerraInvictaDir={game}', *restore)
     run('run', '--project', 'tests/ReleaseRequest.Tests.csproj', '-c', 'Release', '--nologo', *restore)
+    run('run', '--project', 'tests/ProbeArrival/ProbeArrival.Tests.csproj', '-c', 'Release', '--nologo', *restore)
     artifacts = ROOT / 'artifacts'
     artifacts.mkdir(exist_ok=True)
     dll_name = config['Id'] + '.dll'
@@ -61,7 +62,7 @@ def main():
         'gameAssemblySha256': hashlib.sha256(assembly.read_bytes()).hexdigest(),
         'modSha256': hashlib.sha256(files[dll_name].read_bytes()).hexdigest(),
         'packageSha256': hashlib.sha256(archive.read_bytes()).hexdigest(),
-        'checks': ['Release build', '13 offline confirmation/action tests using game stand-ins', 'ZIP allowlist and CRC'],
+        'checks': ['Release build', '13 offline confirmation/action tests using game stand-ins', '17 offline probe-tooltip data/startup tests using game stand-ins', 'ZIP allowlist and CRC'],
         'runtimeTested': False,
         'gameFilesWritten': False,
     }

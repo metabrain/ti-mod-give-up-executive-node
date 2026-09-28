@@ -10,6 +10,8 @@ The local Terra Invicta installation is at `G:\SteamLibrary\steamapps\common\Ter
 
 This repository now implements **Give up Nation**: a button beside **Abandon Nation** in the Policies tab, enabled only when the player owns the executive control point. A confirmation popup explains that only the executive will become unowned; the player's other control points remain theirs.
 
+Version 0.2.2 also adds the scheduled survey completion date and days remaining when hovering an in-flight probe icon in **Intel → Solar System** ([issue #1](https://github.com/metabrain/ti-mod-give-up-executive-node/issues/1)). The user confirmed the date tooltip in-game on v0.2.1, with a screenshot in the issue. The v0.2.2 days-remaining addition passed offline checks and is installed for user testing.
+
 See the [user guide](docs/USER-GUIDE.md) and [implementation and validation notes](docs/implementation.md). This is a C# Harmony/Unity Mod Manager mod, built against the installed game assemblies as read-only references. The user reported that the UI works in-game with v0.1.1; executive-release side effects and save/load remain unverified.
 
 Build, run offline checks, and create a ZIP using Python 3.11+ and the .NET 8 SDK:
@@ -24,7 +26,7 @@ Under WSL:
 python3 tools/build.py --game-dir '/mnt/g/SteamLibrary/steamapps/common/Terra Invicta'
 ```
 
-Use `--dotnet /path/to/dotnet` for a non-PATH SDK, and `--no-restore` after dependencies have been restored. Outputs go to `src/Mod/bin`, `tests/bin`, `.local`, and `artifacts`. The package is `artifacts/Local.GiveUpNation-0.1.1.zip`. The build tool has no deployment or game-launch operation.
+Use `--dotnet /path/to/dotnet` for a non-PATH SDK, and `--no-restore` after dependencies have been restored. Outputs go to `src/Mod/bin`, `tests/bin`, `.local`, and `artifacts`. The package is `artifacts/Local.GiveUpNation-0.2.2.zip`. The build tool has no deployment or game-launch operation.
 
 ## Modding research reference
 

@@ -20,6 +20,7 @@ namespace GiveUpNation
             harmony = new Harmony(entry.Info.Id);
             entry.OnToggle = Toggle;
             entry.OnUnload = e => Toggle(e, false);
+            entry.OnUpdate = (e, elapsed) => ProbeArrivalRuntime.Update(elapsed);
             return true;
         }
 
@@ -32,13 +33,17 @@ namespace GiveUpNation
                 {
                     harmony.PatchAll(Assembly.GetExecutingAssembly());
                     Enabled = true;
+                    ProbeArrivalRuntime.Reset();
                     foreach (var controller in Resources.FindObjectsOfTypeAll<NationInfoController>())
                         if (controller.gameObject.scene.IsValid()) Attach(controller);
+
                 }
                 else
                 {
                     Enabled = false;
+                    ProbeArrivalRuntime.Reset();
                     foreach (var ui in Resources.FindObjectsOfTypeAll<GiveUpNationUi>()) ui.Cleanup();
+                    foreach (var tooltip in Resources.FindObjectsOfTypeAll<ProbeArrivalTooltip>()) tooltip.Cleanup();
                     harmony.UnpatchAll(entry.Info.Id);
                 }
                 return true;
@@ -46,8 +51,10 @@ namespace GiveUpNation
             catch (Exception exception)
             {
                 Enabled = false;
+                ProbeArrivalRuntime.Reset();
                 harmony.UnpatchAll(entry.Info.Id);
                 foreach (var ui in Resources.FindObjectsOfTypeAll<GiveUpNationUi>()) ui.Cleanup();
+                foreach (var tooltip in Resources.FindObjectsOfTypeAll<ProbeArrivalTooltip>()) tooltip.Cleanup();
                 Log(exception);
                 return false;
             }
