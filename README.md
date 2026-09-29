@@ -16,6 +16,8 @@ Version 0.3.0 adds **Filter Unprospected** and **Filter Prospecting** alongside 
 
 Version 0.3.1 adds **Filter Prospectable**, matching the game's native `CanProspectWithProbe(body, false)` target eligibility. It separates valid, currently idle probe targets from bodies that are unprospected but unavailable for probing.
 
+Version 0.3.2 adds a red raw alien-hate debug number to the left of the native alien-threat segments. It reads the alien faction's stored `GetFactionHate(activePlayer)` value directly, rather than the player's assessed estimate.
+
 See the [user guide](docs/USER-GUIDE.md) and [implementation and validation notes](docs/implementation.md). This is a C# Harmony/Unity Mod Manager mod, built against the installed game assemblies as read-only references. The user reported that the UI works in-game with v0.1.1; executive-release side effects and save/load remain unverified.
 
 Build, run offline checks, and create a ZIP using Python 3.11+ and the .NET 8 SDK:
