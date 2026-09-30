@@ -18,6 +18,8 @@ Version 0.3.1 adds **Filter Prospectable**, matching the game's native `CanProsp
 
 Version 0.3.2 adds a red raw alien-hate debug number to the left of the native alien-threat segments. It reads the alien faction's stored `GetFactionHate(activePlayer)` value directly, rather than the player's assessed estimate.
 
+Version 0.3.9 caches UI controller references, limits probe-row discovery to the open Solar System list, and reuses one prospecting-status snapshot per refresh. It also fixes hate-readout cleanup to remove only the mod's text objects/component and guards updates during loading or while disabled. The hate/floor numbers retain their two-second refresh. The Release build passed with zero warnings/errors and all 587 offline checks passed. After installation, the user confirmed that the stutters were gone; this is user-reported runtime validation, not a measured frame-time benchmark.
+
 See the [user guide](docs/USER-GUIDE.md) and [implementation and validation notes](docs/implementation.md). This is a C# Harmony/Unity Mod Manager mod, built against the installed game assemblies as read-only references. The user reported that the UI works in-game with v0.1.1; executive-release side effects and save/load remain unverified.
 
 Build, run offline checks, and create a ZIP using Python 3.11+ and the .NET 8 SDK:

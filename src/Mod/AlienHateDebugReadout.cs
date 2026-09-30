@@ -10,21 +10,26 @@ namespace GiveUpNation
         private TMP_Text text;
         private TMP_Text floorText;
         private float nextUpdate;
+        private GameObject ownedText, ownedFloor;
+        private bool cleaned;
 
-        internal static void Attach(GeneralControlsController controller)
+        internal static AlienHateDebugReadout Attach(GeneralControlsController controller)
         {
-            if (controller == null || controller.alienThreatPanel == null) return;
+            if (controller == null || controller.alienThreatPanel == null) return null;
             var parent = controller.alienThreatPanel.transform.parent;
-            if (parent == null) return;
+            if (parent == null) return null;
             var existing = parent.GetComponent<AlienHateDebugReadout>();
-            if (existing != null) return;
+            if (existing != null) return existing.cleaned ? null : existing;
             var readout = parent.gameObject.AddComponent<AlienHateDebugReadout>();
-            readout.Initialize(controller.alienThreatPanel.transform);
+            try { readout.Initialize(controller.alienThreatPanel.transform); }
+            catch { readout.Cleanup(); throw; }
+            return readout;
         }
 
         private void Initialize(Transform panel)
         {
             var go = new GameObject("GiveUpNation.RawAlienHate", typeof(RectTransform), typeof(TextMeshProUGUI));
+            ownedText = go;
             go.transform.SetParent(panel, false);
             var rect = (RectTransform)go.transform;
             rect.anchorMin = rect.anchorMax = new Vector2(0, 1);
@@ -40,6 +45,7 @@ namespace GiveUpNation
             // campaign's threat-monitor unlock gate.
             go.transform.SetParent(transform, true);
             var floorGo = Instantiate(go, transform, true);
+            ownedFloor = floorGo;
             floorGo.name = "GiveUpNation.RawAlienHateFloor";
             floorText = floorGo.GetComponent<TextMeshProUGUI>();
             floorText.fontSize = 12;
@@ -49,6 +55,9 @@ namespace GiveUpNation
 
         internal void UpdateValue()
         {
+            if (cleaned) return;
+            if (!Main.Enabled || !GameControl.loadcycle100 || GameControl.control == null
+                || GameControl.control.activePlayer == null) { Clear(); return; }
             if (text == null || Time.unscaledTime < nextUpdate) return;
             nextUpdate = Time.unscaledTime + 2f;
             var player = GameControl.control == null ? null : GameControl.control.activePlayer;
@@ -67,8 +76,26 @@ namespace GiveUpNation
 
         internal void Cleanup()
         {
-            if (this == null) return;
-            Destroy(gameObject);
+            if (cleaned) return;
+            cleaned = true;
+            RemoveOwnedText();
+            Destroy(this);
         }
+
+        internal void Clear()
+        {
+            if (text != null) text.text = string.Empty;
+            if (floorText != null) floorText.text = string.Empty;
+            nextUpdate = 0;
+        }
+
+        private void RemoveOwnedText()
+        {
+            if (ownedText != null) { ownedText.SetActive(false); Destroy(ownedText); }
+            if (ownedFloor != null) { ownedFloor.SetActive(false); Destroy(ownedFloor); }
+            ownedText = ownedFloor = null;
+        }
+
+        private void OnDestroy() { cleaned = true; RemoveOwnedText(); }
     }
 }

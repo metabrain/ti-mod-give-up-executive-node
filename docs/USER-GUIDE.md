@@ -1,4 +1,6 @@
-# Give up Nation — 0.3.1
+# Give up Nation — 0.3.9
+
+Version 0.3.9 reduces recurring UI discovery and repeated prospecting checks. The red alien-hate value and `(>XX)` minimum retain their two-second refresh; they clear while a campaign is loading. Disabling the mod removes its readout without removing the game's HUD.
 
 Adds **Give up Nation** beside **Abandon Nation** in the nation's Policies tab. The existing Auto-Renew Abandon checkbox remains on the row below.
 

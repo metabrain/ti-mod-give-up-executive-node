@@ -1,14 +1,16 @@
 using ModelShark;
 using PavonisInteractive.TerraInvicta;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace GiveUpNation
 {
     internal static class ProbeArrivalRuntime
     {
         private static readonly ProbeScanScheduler scheduler = new ProbeScanScheduler();
+        private static readonly List<IntelSpaceBodyListItemController> rows = new List<IntelSpaceBodyListItemController>();
 
-        internal static void Reset() { scheduler.Reset(); }
+        internal static void Reset() { scheduler.Reset(); rows.Clear(); IntelUiCache.Reset(); }
 
         internal static void Update(float elapsed)
         {
@@ -27,12 +29,16 @@ namespace GiveUpNation
         {
             // Only active scene objects, not serialized prefabs. Initialized rows
             // have a body and native tooltip style; new rows are found next tick.
-            foreach (var row in Object.FindObjectsOfType<IntelSpaceBodyListItemController>())
+            var controller = IntelUiCache.OpenController();
+            if (controller == null || controller.spacebodyListAdapter == null) return;
+            controller.spacebodyListAdapter.GetComponentsInChildren(false, rows);
+            foreach (var row in rows)
             {
                 if (row.spaceBody == null || row.prospectTooltip == null
                     || row.prospectTooltip.tooltipStyle == null) continue;
                 if (row.GetComponent<ProbeArrivalTooltip>() == null) ProbeArrivalTooltip.Attach(row);
             }
+            rows.Clear();
         }
     }
 }

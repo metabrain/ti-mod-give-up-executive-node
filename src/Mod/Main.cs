@@ -13,7 +13,6 @@ namespace GiveUpNation
         internal static bool Enabled;
         private static Harmony harmony;
         private static UnityModManager.ModEntry entry;
-        private static float alienReadoutScanRemaining;
 
         public static bool Load(UnityModManager.ModEntry modEntry)
         {
@@ -25,17 +24,7 @@ namespace GiveUpNation
             {
                 ProbeArrivalRuntime.Update(elapsed);
                 ProspectingFiltersRuntime.Update(elapsed);
-                alienReadoutScanRemaining -= elapsed;
-                if (alienReadoutScanRemaining <= 0)
-                {
-                    alienReadoutScanRemaining = 1f;
-                    foreach (var controller in Resources.FindObjectsOfTypeAll<GeneralControlsController>())
-                    {
-                        if (!controller.gameObject.scene.IsValid()) continue;
-                        AlienHateDebugReadout.Attach(controller);
-                    }
-                    foreach (var readout in Resources.FindObjectsOfTypeAll<AlienHateDebugReadout>()) readout.UpdateValue();
-                }
+                AlienHateRuntime.Update(elapsed);
             };
             return true;
         }
@@ -51,7 +40,7 @@ namespace GiveUpNation
                     Enabled = true;
                     ProbeArrivalRuntime.Reset();
                     ProspectingFiltersRuntime.Reset();
-                    alienReadoutScanRemaining = 0;
+                    AlienHateRuntime.Reset();
                     foreach (var controller in Resources.FindObjectsOfTypeAll<NationInfoController>())
                         if (controller.gameObject.scene.IsValid()) Attach(controller);
 
@@ -61,10 +50,9 @@ namespace GiveUpNation
                     Enabled = false;
                     ProbeArrivalRuntime.Reset();
                     ProspectingFiltersRuntime.Reset();
-                    alienReadoutScanRemaining = 0;
+                    AlienHateRuntime.Reset();
                     foreach (var ui in Resources.FindObjectsOfTypeAll<GiveUpNationUi>()) ui.Cleanup();
                     foreach (var tooltip in Resources.FindObjectsOfTypeAll<ProbeArrivalTooltip>()) tooltip.Cleanup();
-                    foreach (var readout in Resources.FindObjectsOfTypeAll<AlienHateDebugReadout>()) readout.Cleanup();
                     harmony.UnpatchAll(entry.Info.Id);
                 }
                 return true;
@@ -74,11 +62,10 @@ namespace GiveUpNation
                 Enabled = false;
                 ProbeArrivalRuntime.Reset();
                 ProspectingFiltersRuntime.Reset();
-                alienReadoutScanRemaining = 0;
+                AlienHateRuntime.Reset();
                 harmony.UnpatchAll(entry.Info.Id);
                 foreach (var ui in Resources.FindObjectsOfTypeAll<GiveUpNationUi>()) ui.Cleanup();
                 foreach (var tooltip in Resources.FindObjectsOfTypeAll<ProbeArrivalTooltip>()) tooltip.Cleanup();
-                foreach (var readout in Resources.FindObjectsOfTypeAll<AlienHateDebugReadout>()) readout.Cleanup();
                 Log(exception);
                 return false;
             }

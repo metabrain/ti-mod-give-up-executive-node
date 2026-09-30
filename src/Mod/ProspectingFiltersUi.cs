@@ -14,7 +14,11 @@ namespace GiveUpNation
         private Toggle unprospected, prospectable, prospecting;
         private GameObject staging;
         private readonly List<RectState> layout = new List<RectState>();
-        private readonly Dictionary<TISpaceBodyState, ProspectingStatus> statuses = new Dictionary<TISpaceBodyState, ProspectingStatus>();
+        private readonly StatusSnapshot<TISpaceBodyState> statuses = new StatusSnapshot<TISpaceBodyState>();
+        private TIFactionState snapshotPlayer;
+        private object snapshotModels;
+        private Toggle[] clones;
+        private Func<TISpaceBodyState, ProspectingStatus> evaluate;
         private TIFactionState player;
         private bool cleaned;
         internal bool Ready { get; private set; }
@@ -23,6 +27,7 @@ namespace GiveUpNation
         internal void Initialize(IntelScreenController owner)
         {
             controller = owner;
+            evaluate = Evaluate;
             var original = controller.filterProspected;
             var originalRect = (RectTransform)original.transform;
             var upper = originalRect.parent as RectTransform;
@@ -44,6 +49,7 @@ namespace GiveUpNation
             unprospected = Clone(original, "Unprospected", "Filter Unprospected");
             prospectable = Clone(original, "Prospectable", "Filter Prospectable");
             prospecting = Clone(original, "Prospecting", "Filter Prospecting");
+            clones = new[] { unprospected, prospectable, prospecting };
 
             Remember(upper);
             Remember(lower);
@@ -96,8 +102,19 @@ namespace GiveUpNation
 
         internal bool Matches(TIFactionState faction, TISpaceBodyState body)
         {
-            return ProspectingSelection.Matches(ProspectingState.GetStatus(faction, body), controller.filterProspected.isOn,
+            EnsureContext(faction);
+            return ProspectingSelection.Matches(statuses.Get(body, evaluate), controller.filterProspected.isOn,
                 unprospected.isOn, prospectable.isOn, prospecting.isOn);
+        }
+
+        private ProspectingStatus Evaluate(TISpaceBodyState body) => ProspectingState.GetStatus(snapshotPlayer, body);
+
+        private void EnsureContext(TIFactionState faction)
+        {
+            if (ReferenceEquals(snapshotPlayer, faction) && ReferenceEquals(snapshotModels, controller.spacebodyModels)) return;
+            statuses.Clear();
+            snapshotPlayer = faction;
+            snapshotModels = controller.spacebodyModels;
         }
 
         internal void Tick()
@@ -119,23 +136,16 @@ namespace GiveUpNation
                 return;
             }
             // Include hidden bodies so launches/completions can bring a row back.
-            bool changed = statuses.Count != controller.spacebodyModels.Count;
+            EnsureContext(player);
+            statuses.Begin();
             foreach (var model in controller.spacebodyModels)
             {
                 var body = model.IntelScreenSpacebodyListItemData.spacebodyState;
                 var status = ProspectingState.GetStatus(player, body);
-                if (!statuses.TryGetValue(body, out var previous) || status != previous) changed = true;
-                statuses[body] = status;
+                statuses.Add(body, status);
             }
-            if (changed)
+            if (statuses.Complete())
             {
-                // Drop stale model references after a list rebuild.
-                statuses.Clear();
-                foreach (var model in controller.spacebodyModels)
-                {
-                    var body = model.IntelScreenSpacebodyListItemData.spacebodyState;
-                    statuses[body] = ProspectingState.GetStatus(player, body);
-                }
                 RefreshList();
             }
         }
@@ -150,7 +160,7 @@ namespace GiveUpNation
         {
             var original = (RectTransform)controller.filterProspected.transform;
             float x = original.anchoredPosition.x + Width(controller.filterProspected) + 12;
-            foreach (var toggle in new[] { unprospected, prospectable, prospecting })
+            foreach (var toggle in clones)
             {
                 var rect = (RectTransform)toggle.transform;
                 rect.anchorMin = rect.anchorMax = new Vector2(0, 1);

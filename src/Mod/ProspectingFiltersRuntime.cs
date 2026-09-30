@@ -10,6 +10,7 @@ namespace GiveUpNation
         private static readonly ProbeScanScheduler scheduler = new ProbeScanScheduler();
         private static Harmony harmony;
         private static bool failed;
+        private static ProspectingFiltersUi ownedUi;
 
         internal static void Update(float elapsed)
         {
@@ -21,10 +22,11 @@ namespace GiveUpNation
         {
             try
             {
-                foreach (var controller in UnityEngine.Object.FindObjectsOfType<IntelScreenController>())
+                var controller = IntelUiCache.OpenController();
+                if (controller != null)
                 {
                     if (controller.filterProspected == null || !controller.filterProspected.gameObject.activeInHierarchy
-                        || controller.spacebodyModels == null || controller.spacebodyModels.Count == 0) continue;
+                        || controller.spacebodyModels == null || controller.spacebodyModels.Count == 0) return;
                     if (harmony == null)
                     {
                         harmony = new Harmony("Local.GiveUpNation.ProspectingFilters");
@@ -32,11 +34,14 @@ namespace GiveUpNation
                             transpiler: new HarmonyMethod(typeof(ProspectingFilterPatch), "Transpiler"));
                     }
                     var ui = controller.GetComponent<ProspectingFiltersUi>();
+                    if (ownedUi != null && ownedUi != ui) ownedUi.Cleanup();
                     if (ui == null)
                     {
                         ui = controller.gameObject.AddComponent<ProspectingFiltersUi>();
+                        ownedUi = ui;
                         ui.Initialize(controller);
                     }
+                    ownedUi = ui;
                     ui.Tick();
                 }
             }
@@ -61,11 +66,12 @@ namespace GiveUpNation
             if (harmony == null) return;
             harmony.UnpatchAll(harmony.Id);
             harmony = null;
-            foreach (var ui in Resources.FindObjectsOfTypeAll<ProspectingFiltersUi>())
+            if (ownedUi != null)
             {
-                try { ui.Cleanup(); }
+                try { ownedUi.Cleanup(); }
                 catch (Exception exception) { Main.Log(exception); }
             }
+            ownedUi = null;
         }
     }
 }

@@ -19,6 +19,7 @@ internal static class Program
 
     private static void Main()
     {
+        SnapshotChecks();
         var body = new TISpaceBodyState();
         var faction = new TIFactionState();
         for (int state = 0; state < 16; state++)
@@ -149,6 +150,38 @@ internal static class Program
             otherFilter,
             new CodeInstruction(OpCodes.Ret)
         });
+    }
+
+    private static void SnapshotChecks()
+    {
+        var snapshot = new StatusSnapshot<int>();
+        int evaluations = 0;
+        ProspectingStatus Evaluate(int body) { evaluations++; return ProspectingStatus.Prospectable; }
+        snapshot.Begin();
+        for (int i = 0; i < 1000; i++) snapshot.Add(i, Evaluate(i));
+        Check(snapshot.Complete(), "initial snapshot changes visibility");
+        for (int pass = 0; pass < 3; pass++)
+            for (int i = 0; i < 1000; i++) snapshot.Get(i, Evaluate);
+        Check(evaluations == 1000, "visibility reuses the snapshot without game queries");
+        snapshot.Begin();
+        for (int i = 0; i < 1000; i++) snapshot.Add(i, Evaluate(i));
+        Check(!snapshot.Complete(), "unchanged snapshot avoids list rebuild");
+        snapshot.Begin();
+        for (int i = 1; i <= 1000; i++) snapshot.Add(i, Evaluate(i));
+        Check(snapshot.Complete(), "same-count replacement detected");
+        int before = evaluations;
+        snapshot.Get(0, Evaluate);
+        snapshot.Get(0, Evaluate);
+        Check(evaluations == before + 1, "removed/new body evaluated once on demand");
+        snapshot.Clear();
+        snapshot.Get(0, Evaluate);
+        Check(evaluations == before + 2, "context invalidation discards stale knowledge");
+        snapshot.Begin();
+        snapshot.Add(0, ProspectingStatus.Prospected);
+        Check(snapshot.Complete(), "completion changes visibility");
+        Check(snapshot.Get(0, Evaluate) == ProspectingStatus.Prospected, "completed result published");
+        snapshot.Begin();
+        Check(snapshot.Complete(), "empty list removes prior bodies");
     }
 
     private static void Emit(ILGenerator generator, IEnumerable<CodeInstruction> instructions)
