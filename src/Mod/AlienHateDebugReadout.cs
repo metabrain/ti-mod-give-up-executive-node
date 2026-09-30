@@ -62,7 +62,7 @@ namespace GiveUpNation
             // This is the raw alien faction hate table entry, not the player's
             // assessedAlienHateOfMe estimate used by the native meter.
             text.text = alien.GetFactionHate(player).ToString("0.##");
-            floorText.text = "⌊ " + alien.MinimumFactionHate(player).ToString("0.##");
+            floorText.text = "(>" + alien.MinimumFactionHate(player).ToString("0.##") + ")";
         }
 
         internal void Cleanup()

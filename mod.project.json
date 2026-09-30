@@ -2,7 +2,7 @@
   "Id": "Local.GiveUpNation",
   "DisplayName": "Give up Nation",
   "Author": "Local mod",
-  "Version": "0.3.7",
+  "Version": "0.3.8",
   "ManagerVersion": "0.32.4",
   "Description": "Adds a Give up Nation button to the Policies tab. After confirmation, releases only the player's executive control point; other control points remain owned. Also shows probe survey completion dates, prospecting filters, and a raw alien-hate debug readout.\n\nCreated using https://github.com/Laurentiu-Andronache/ti-mod-template"
 }
