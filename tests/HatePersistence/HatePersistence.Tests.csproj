@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net8.0;net48</TargetFrameworks>
+    <LangVersion>12.0</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/Mod/HateHistory.cs" Link="HateHistory.cs" />
+    <Compile Include="../../src/Mod/HateHistorySaveCodec.cs" Link="HateHistorySaveCodec.cs" />
+    <Compile Include="../../src/Mod/HateHistorySaveProcessor.cs" Link="HateHistorySaveProcessor.cs" />
+    <Compile Include="../../src/Mod/AlienHateSavePersistence.cs" Link="AlienHateSavePersistence.cs" />
+    <Compile Include="HatePersistenceTests.cs" />
+    <!-- Installed assemblies are copied only into ignored local test output. -->
+    <Reference Include="Assembly-CSharp;UnityEngine.CoreModule">
+      <HintPath>$(TerraInvictaDir)/TerraInvicta_Data/Managed/%(Identity).dll</HintPath>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(TerraInvictaDir)/TerraInvicta_Data/Managed/UnityModManager/0Harmony.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

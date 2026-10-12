@@ -2,6 +2,8 @@ using System;
 using PavonisInteractive.TerraInvicta;
 using TMPro;
 using UnityEngine;
+using ModelShark;
+using System.Collections.Generic;
 
 namespace GiveUpNation
 {
@@ -9,8 +11,9 @@ namespace GiveUpNation
     {
         private TMP_Text text;
         private TMP_Text floorText;
+        private TMP_Text quietnessText;
         private float nextUpdate;
-        private GameObject ownedText, ownedFloor;
+        private GameObject ownedText, ownedFloor, ownedQuietness;
         private bool cleaned;
 
         internal static AlienHateDebugReadout Attach(GeneralControlsController controller)
@@ -21,12 +24,12 @@ namespace GiveUpNation
             var existing = parent.GetComponent<AlienHateDebugReadout>();
             if (existing != null) return existing.cleaned ? null : existing;
             var readout = parent.gameObject.AddComponent<AlienHateDebugReadout>();
-            try { readout.Initialize(controller.alienThreatPanel.transform); }
+            try { readout.Initialize(controller.alienThreatPanel.transform, controller.alienAlertTip); }
             catch { readout.Cleanup(); throw; }
             return readout;
         }
 
-        private void Initialize(Transform panel)
+        private void Initialize(Transform panel, TooltipTrigger source)
         {
             var go = new GameObject("GiveUpNation.RawAlienHate", typeof(RectTransform), typeof(TextMeshProUGUI));
             ownedText = go;
@@ -50,6 +53,32 @@ namespace GiveUpNation
             floorText = floorGo.GetComponent<TextMeshProUGUI>();
             floorText.fontSize = 12;
             floorText.rectTransform.anchoredPosition += new Vector2(0, -18);
+            var quietnessGo = Instantiate(floorGo, transform, true);
+            ownedQuietness = quietnessGo;
+            quietnessGo.name = "GiveUpNation.AlienQuietness";
+            quietnessText = quietnessGo.GetComponent<TextMeshProUGUI>();
+            quietnessText.rectTransform.anchoredPosition += new Vector2(0, -18);
+            quietnessText.rectTransform.sizeDelta = new Vector2(64, 24);
+            if (source != null && source.tooltipStyle != null)
+            {
+                go.SetActive(false);
+                go.layer = source.gameObject.layer;
+                text.raycastTarget = true;
+                var trigger = go.AddComponent<TooltipTrigger>();
+                trigger.tooltipStyle = source.tooltipStyle;
+                trigger.tooltipType = source.tooltipType;
+                trigger.tipPosition = source.tipPosition;
+                trigger.backgroundTint = source.backgroundTint;
+                trigger.minTextWidth = source.minTextWidth;
+                trigger.maxTextWidth = 650;
+                trigger.neverRotate = source.neverRotate;
+                trigger.disablePendingTooltipsOnMouseExit = true;
+                trigger.parameterizedTextFields = new List<ParameterizedTextField>();
+                trigger.dynamicImageFields = new List<DynamicImageField>();
+                trigger.dynamicSectionFields = new List<DynamicSectionField>();
+                trigger.SetDelegate("BodyText", AlienHateHistory.Tooltip);
+                go.SetActive(true);
+            }
             UpdateValue();
         }
 
@@ -64,14 +93,15 @@ namespace GiveUpNation
             var alien = GameStateManager.AlienFaction();
             if (player == null || alien == null)
             {
-                text.text = string.Empty;
-                floorText.text = string.Empty;
+                Clear();
                 return;
             }
             // This is the raw alien faction hate table entry, not the player's
             // assessedAlienHateOfMe estimate used by the native meter.
             text.text = alien.GetFactionHate(player).ToString("0.##");
             floorText.text = "(>" + alien.MinimumFactionHate(player).ToString("0.##") + ")";
+            // Global raw 0–1 value used by the alien AI, on the same refresh timer.
+            quietnessText.text = "Q " + AIEvaluators.GetAlienQuietness().ToString("0.000");
         }
 
         internal void Cleanup()
@@ -86,6 +116,7 @@ namespace GiveUpNation
         {
             if (text != null) text.text = string.Empty;
             if (floorText != null) floorText.text = string.Empty;
+            if (quietnessText != null) quietnessText.text = string.Empty;
             nextUpdate = 0;
         }
 
@@ -93,7 +124,8 @@ namespace GiveUpNation
         {
             if (ownedText != null) { ownedText.SetActive(false); Destroy(ownedText); }
             if (ownedFloor != null) { ownedFloor.SetActive(false); Destroy(ownedFloor); }
-            ownedText = ownedFloor = null;
+            if (ownedQuietness != null) { ownedQuietness.SetActive(false); Destroy(ownedQuietness); }
+            ownedText = ownedFloor = ownedQuietness = null;
         }
 
         private void OnDestroy() { cleaned = true; RemoveOwnedText(); }

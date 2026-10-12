@@ -1,4 +1,10 @@
-# Give up Nation — 0.3.9
+# Give up Nation — 0.3.12
+
+The third red line, `Q 0.000`, shows raw global alien quietness to three decimals: 1 is maximum quietness; 0 satisfies the game's "go loud" condition. It uses the native AI calculation and shares the hate counters' two-second refresh. Quietness is not specific to your faction or a guarantee against attacks.
+
+Hover over the red alien-hate number to see the latest 12 recorded changes, including campaign date, the game's reason, requested change, and actual before/after values. Up to 100 changes are retained and included in saves made with v0.3.12 enabled. Loading restores that save's history after the campaign is ready; loading an older save rolls back the history too. Saves without history start empty. Switching player faction or disabling the mod clears the current in-memory history. Recording begins once the campaign is ready; unrecorded past events and changes to the calculated minimum are not reconstructed. The tooltip refreshes when hovered again. Generic game reasons such as "Effect" are shown as supplied.
+
+The history is an optional `Local.GiveUpNation` section inside the normal save, including compressed saves. Missing, unsupported, or malformed history is ignored without rejecting the game save. Loading without the mod ignores the section; saving again without the mod discards it. This compatibility has been checked with the installed serializer and synthetic saves; live campaign save/load testing is still pending for v0.3.12.
 
 Version 0.3.9 reduces recurring UI discovery and repeated prospecting checks. The red alien-hate value and `(>XX)` minimum retain their two-second refresh; they clear while a campaign is loading. Disabling the mod removes its readout without removing the game's HUD.
 

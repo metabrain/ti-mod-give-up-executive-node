@@ -18,6 +18,12 @@ Version 0.3.1 adds **Filter Prospectable**, matching the game's native `CanProsp
 
 Version 0.3.2 adds a red raw alien-hate debug number to the left of the native alien-threat segments. It reads the alien faction's stored `GetFactionHate(activePlayer)` value directly, rather than the player's assessed estimate.
 
+Version 0.3.10 adds a hover history to that number. A delayed Harmony prefix/postfix on `GainFactionHate` records the current player's actual alien-hate changes with native cause strings, retaining 100 entries and displaying the latest 12. It does not poll for changes or write campaign saves. UI rendering and hook behavior in the live game remain to be tested.
+
+Version 0.3.11 adds `Q 0.000` below the minimum hate, displaying the raw global `AIEvaluators.GetAlienQuietness()` result on the existing two-second refresh. The third line shares the readout's loading guards and owned-object cleanup. Its live layout remains to be tested.
+
+The user confirmed that both the v0.3.11 history tooltip and quietness counter work in-game. Version 0.3.12 persists the last 100 history entries inside normal or compressed saves using a namespaced, versioned FullSerializer extension. Offline tests cover native serialization/loading, missing-mod compatibility, rejected optional data, load failures, and older-save rollback. Live v0.3.12 campaign testing remains pending. See [save-history design and verification](docs/hate-history-persistence.md).
+
 Version 0.3.9 caches UI controller references, limits probe-row discovery to the open Solar System list, and reuses one prospecting-status snapshot per refresh. It also fixes hate-readout cleanup to remove only the mod's text objects/component and guards updates during loading or while disabled. The hate/floor numbers retain their two-second refresh. The Release build passed with zero warnings/errors and all 587 offline checks passed. After installation, the user confirmed that the stutters were gone; this is user-reported runtime validation, not a measured frame-time benchmark.
 
 See the [user guide](docs/USER-GUIDE.md) and [implementation and validation notes](docs/implementation.md). This is a C# Harmony/Unity Mod Manager mod, built against the installed game assemblies as read-only references. The user reported that the UI works in-game with v0.1.1; executive-release side effects and save/load remain unverified.

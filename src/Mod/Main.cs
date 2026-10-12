@@ -41,6 +41,7 @@ namespace GiveUpNation
                     ProbeArrivalRuntime.Reset();
                     ProspectingFiltersRuntime.Reset();
                     AlienHateRuntime.Reset();
+                    AlienHateSavePersistence.Install();
                     foreach (var controller in Resources.FindObjectsOfTypeAll<NationInfoController>())
                         if (controller.gameObject.scene.IsValid()) Attach(controller);
 
@@ -48,6 +49,7 @@ namespace GiveUpNation
                 else
                 {
                     Enabled = false;
+                    AlienHateSavePersistence.Reset();
                     ProbeArrivalRuntime.Reset();
                     ProspectingFiltersRuntime.Reset();
                     AlienHateRuntime.Reset();
@@ -60,6 +62,7 @@ namespace GiveUpNation
             catch (Exception exception)
             {
                 Enabled = false;
+                AlienHateSavePersistence.Reset();
                 ProbeArrivalRuntime.Reset();
                 ProspectingFiltersRuntime.Reset();
                 AlienHateRuntime.Reset();

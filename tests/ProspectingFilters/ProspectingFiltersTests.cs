@@ -20,6 +20,7 @@ internal static class Program
     private static void Main()
     {
         SnapshotChecks();
+        HistoryChecks();
         var body = new TISpaceBodyState();
         var faction = new TIFactionState();
         for (int state = 0; state < 16; state++)
@@ -184,6 +185,93 @@ internal static class Program
         Check(snapshot.Complete(), "empty list removes prior bodies");
     }
 
+    private static void HistoryChecks()
+    {
+        var history = new HateHistory();
+        Check(history.Tooltip().Contains("No changes"), "empty hate history");
+        history.Add("date", "ignored", 10, 20, 20);
+        Check(history.Count == 0, "clamped no-op omitted");
+        history.Add("date", "<color=red>cause", 10, 20, 23);
+        Check(history.Recent(0).Requested == 10 && history.Recent(0).After == 23, "requested and actual values distinct");
+        Check(!history.Tooltip().Contains("<color"), "cause cannot inject rich text");
+        history.Add("date", "retaliation", -5, 23, 18);
+        Check(history.Recent(0).After - history.Recent(0).Before == -5, "hate reductions recorded");
+        for (int i = 0; i < 110; i++) history.Add(i.ToString(), "event", 1, i, i + 1);
+        Check(history.Count == 100, "history bounded at 100");
+        Check(history.Recent(0).Before == 109 && history.Recent(99).Before == 10, "ring order and eviction");
+        Check(history.Tooltip().Contains("latest 12 of 100"), "tooltip bounded to readable recent history");
+        history.Clear();
+        Check(history.Count == 0 && history.Tooltip().Contains("No changes"), "clear removes prior campaign history");
+        var alien = GameStateManager.Alien;
+        var player = GameControl.control.activePlayer;
+        var before = AccessTools.Method(typeof(AlienHateHistory), "Before");
+        var after = AccessTools.Method(typeof(AlienHateHistory), "After");
+        object Capture(TIFactionState owner, TIFactionState target, float requested, string cause)
+        {
+            object[] args = { owner, target, requested, cause, null };
+            before.Invoke(null, args);
+            return args[4];
+        }
+        alien.Hate = 20;
+        var captured = Capture(alien, player, 10, "capture test");
+        alien.Hate = 23;
+        after.Invoke(null, new[] { alien, player, captured });
+        Check(AlienHateHistory.Tooltip().Contains("20 -> 23") && AlienHateHistory.Tooltip().Contains("requested +10"), "production interception captures actual delta");
+        var other = Capture(new TIFactionState(), player, 10, "wrong faction");
+        after.Invoke(null, new[] { alien, player, other });
+        Check(!AlienHateHistory.Tooltip().Contains("wrong faction"), "other faction ignored");
+        GameControl.loadcycle100 = false;
+        AlienHateHistory.SyncContext();
+        GameControl.loadcycle100 = true;
+        after.Invoke(null, new[] { alien, player, captured });
+        Check(AlienHateHistory.Tooltip().Contains("No changes"), "loading clears history and rejects stale call");
+        captured = Capture(alien, player, 10, "old player");
+        GameControl.control.activePlayer = new TIFactionState();
+        after.Invoke(null, new[] { alien, player, captured });
+        Check(AlienHateHistory.Tooltip().Contains("No changes"), "player switch rejects stale call");
+        var savedHistory = new HateHistory();
+        savedHistory.Add("saved date", "saved event", 5, 10, 15);
+        var saved = savedHistory.Snapshot("42");
+        GameControl.loadcycle100 = false;
+        var loader = new System.Threading.Thread(() =>
+        {
+            AlienHateHistory.BeginLoad();
+            AlienHateHistory.FinishLoad(saved);
+        });
+        loader.Start(); loader.Join();
+        Check(!AlienHateHistory.SyncContext() && AlienHateHistory.ExportForSave() == null, "pending restore waits for ready campaign");
+        GameControl.control.activePlayer = new TIFactionState { ID = 42 };
+        GameControl.loadcycle100 = true;
+        Check(AlienHateHistory.Tooltip().Contains("10 -> 15"), "pending history restored to matching saved faction");
+        player = GameControl.control.activePlayer;
+        alien.Hate = 15;
+        captured = Capture(alien, player, 2, "later event");
+        alien.Hate = 17;
+        after.Invoke(null, new[] { alien, player, captured });
+        var detached = AlienHateHistory.ExportForSave();
+        Check(detached.Entries.Length == 2 && detached.Entries[1].After == 17, "recording continues after restore without replaying old snapshot");
+        AlienHateHistory.BeginLoad();
+        Check(!AlienHateHistory.SyncContext(), "load scope blocks recording even before readiness flag changes");
+        AlienHateHistory.FinishLoad(saved);
+        after.Invoke(null, new[] { alien, player, captured });
+        Check(!AlienHateHistory.Tooltip().Contains("later event") && AlienHateHistory.ExportForSave().Entries.Length == 1,
+            "older save replaces future timeline and stale intercepted calls");
+        Check(detached.Entries.Length == 2, "save snapshot survives later history clearing");
+        AlienHateHistory.BeginLoad(); AlienHateHistory.FinishLoad(null);
+        Check(AlienHateHistory.Tooltip().Contains("No changes"), "missing/rejected save payload starts empty");
+        AlienHateHistory.BeginLoad(); AlienHateHistory.FinishLoad(saved);
+        GameControl.control.activePlayer = new TIFactionState { ID = 99 };
+        Check(AlienHateHistory.Tooltip().Contains("No changes"), "different saved faction cannot inherit history");
+        GameControl.control.activePlayer = new TIFactionState { ID = 42 };
+        Check(AlienHateHistory.Tooltip().Contains("No changes"), "rejected faction payload not retained for later switch");
+        AlienHateHistory.BeginLoad(); AlienHateHistory.FinishLoad(saved);
+        AlienHateHistory.ClearCampaign();
+        Check(AlienHateHistory.Tooltip().Contains("No changes"), "new campaign discards pending restore");
+        AlienHateHistory.BeginLoad(); AlienHateHistory.FinishLoad(saved);
+        AlienHateHistory.Reset();
+        Check(AlienHateHistory.Tooltip().Contains("No changes"), "mod reset discards pending restore");
+    }
+
     private static void Emit(ILGenerator generator, IEnumerable<CodeInstruction> instructions)
     {
         foreach (var instruction in instructions)
@@ -207,6 +295,9 @@ namespace PavonisInteractive.TerraInvicta
     public class TISpaceBodyState { }
     public class TIFactionState
     {
+        public int ID = 42;
+        public float Hate;
+        public float GetFactionHate(TIFactionState target) => Hate;
         public bool Completed, Probe, Fleet, CanProbe;
         public bool Prospected(TISpaceBodyState body) => Completed;
         public bool ProspectorEnRoute(TISpaceBodyState body) => Probe;
@@ -223,10 +314,30 @@ namespace PavonisInteractive.TerraInvicta
             return Ui as T;
         }
     }
+    public class GameControl
+    {
+        public static bool loadcycle100 = true;
+        public static GameControl control = new GameControl();
+        public TIFactionState activePlayer = new TIFactionState();
+    }
+    public static class GameStateManager
+    {
+        public static TIFactionState Alien = new TIFactionState();
+        public static TIFactionState AlienFaction() => Alien;
+    }
+    public class TITimeState
+    {
+        public static TITimeState Now() => new TITimeState();
+        public string ToCustomDateString() => "Test date";
+    }
 }
 namespace GiveUpNation
 {
-    internal static class Main { internal static bool Enabled = true; }
+    internal static class Main
+    {
+        internal static bool Enabled = true;
+        internal static void Log(Exception e) { throw new Exception("Unexpected history error", e); }
+    }
     internal class ProspectingFiltersUi
     {
         internal bool Ready = true, Unprospected, Prospectable, Prospecting;
