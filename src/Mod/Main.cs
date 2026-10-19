@@ -24,7 +24,9 @@ namespace GiveUpNation
             {
                 ProbeArrivalRuntime.Update(elapsed);
                 ProspectingFiltersRuntime.Update(elapsed);
+                ProspectingTravelRuntime.Update(elapsed);
                 AlienHateRuntime.Update(elapsed);
+                TradeAcceptanceRuntime.Update(elapsed);
             };
             return true;
         }
@@ -40,7 +42,9 @@ namespace GiveUpNation
                     Enabled = true;
                     ProbeArrivalRuntime.Reset();
                     ProspectingFiltersRuntime.Reset();
+                    ProspectingTravelRuntime.Reset();
                     AlienHateRuntime.Reset();
+                    TradeAcceptanceRuntime.Reset();
                     AlienHateSavePersistence.Install();
                     foreach (var controller in Resources.FindObjectsOfTypeAll<NationInfoController>())
                         if (controller.gameObject.scene.IsValid()) Attach(controller);
@@ -50,9 +54,11 @@ namespace GiveUpNation
                 {
                     Enabled = false;
                     AlienHateSavePersistence.Reset();
+                    ProspectingTravelRuntime.Reset();
                     ProbeArrivalRuntime.Reset();
                     ProspectingFiltersRuntime.Reset();
                     AlienHateRuntime.Reset();
+                    TradeAcceptanceRuntime.Reset();
                     foreach (var ui in Resources.FindObjectsOfTypeAll<GiveUpNationUi>()) ui.Cleanup();
                     foreach (var tooltip in Resources.FindObjectsOfTypeAll<ProbeArrivalTooltip>()) tooltip.Cleanup();
                     harmony.UnpatchAll(entry.Info.Id);
@@ -63,9 +69,11 @@ namespace GiveUpNation
             {
                 Enabled = false;
                 AlienHateSavePersistence.Reset();
+                ProspectingTravelRuntime.Reset();
                 ProbeArrivalRuntime.Reset();
                 ProspectingFiltersRuntime.Reset();
                 AlienHateRuntime.Reset();
+                TradeAcceptanceRuntime.Reset();
                 harmony.UnpatchAll(entry.Info.Id);
                 foreach (var ui in Resources.FindObjectsOfTypeAll<GiveUpNationUi>()) ui.Cleanup();
                 foreach (var tooltip in Resources.FindObjectsOfTypeAll<ProbeArrivalTooltip>()) tooltip.Cleanup();
@@ -75,6 +83,7 @@ namespace GiveUpNation
         }
 
         internal static void Log(Exception exception) { entry.Logger.Error(exception.ToString()); }
+        internal static void Info(string message) { entry.Logger.Log(message); }
         internal static void Attach(NationInfoController controller)
         {
             GiveUpNationUi ui = null;

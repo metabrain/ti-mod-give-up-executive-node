@@ -11,12 +11,18 @@ namespace GiveUpNation
 
         internal static IntelScreenController OpenController()
         {
+            var current = FindController();
+            return current != null && current.filterProspected != null
+                && current.filterProspected.gameObject.activeInHierarchy ? current : null;
+        }
+
+        internal static IntelScreenController FindController()
+        {
             if (!GameControl.loadcycle100 || GameControl.control == null
                 || GameControl.control.activePlayer == null) return null;
             // Discover only while the cached Unity object is missing/destroyed.
             if (controller == null) controller = Object.FindObjectOfType<IntelScreenController>();
-            return controller != null && controller.filterProspected != null
-                && controller.filterProspected.gameObject.activeInHierarchy ? controller : null;
+            return controller;
         }
     }
 }

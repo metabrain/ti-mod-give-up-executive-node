@@ -2,6 +2,8 @@
 
 Research snapshot: 24 September 2026.
 
+Version 0.3.14 adds a standalone Travel column to both Prospecting and Solar System. Clicking its header starts calculation of one body per frame, populates results progressively, then sorts by travel time. Later clicks reverse the cached sort; opening the page does not calculate routes. Closing the tab or changing fleet cancels remaining work. It uses the native route solver without issuing orders. See [travel implementation and test notes](docs/prospecting-travel.md). Live v0.3.14 layout and performance checks remain pending.
+
 ## Local game installation: strictly read-only
 
 The local Terra Invicta installation is at `G:\SteamLibrary\steamapps\common\Terra Invicta` (WSL path: `/mnt/g/SteamLibrary/steamapps/common/Terra Invicta`). Its files may be inspected to support development, but the entire installation must remain **strictly read-only**. Do not edit, delete, replace, or create files there, install or deploy mods there, or run tooling that writes there. Keep generated files and development outputs in this repository or a temporary directory.
@@ -197,3 +199,13 @@ Static data belongs in templates. Persisted runtime data belongs in game state a
 ## Next validation step
 
 The first feature is implemented as a code mod. In-game validation remains outstanding; see the acceptance checklist in [implementation notes](docs/implementation.md). It requires an authorized test installation, while the specified local installation remains strictly read-only.
+
+### Trade acceptance breakdown (0.3.19)
+
+The negotiation screen now shows AI benefit, your benefit, and any hard restrictions beneath the AI response. Hover anywhere over **the breakdown or the leader’s response** for category valuations, distrust, and a numbered list of every violated hard restriction with values and limits. The tooltip also lists the full set of hard rules, even when none are violated. These are internal scores, not money or acceptance probabilities. Hard restrictions explain hab/org limits, income loss, and Mission Control deficits. Untouched AI offers retain the game's special acceptance rule.
+
+The breakdown refreshes when the game evaluates the offer, with no periodic scoring. It does not change trade decisions or saves. The AI offer list is shortened to make room; disabling the mod restores it. Build and offline checks passed; live layout, hover, reopening, and disable/re-enable still require in-game testing.
+
+Violated trade restrictions also appear as a numbered list below the benefits. The area expands for multiple restrictions; scroll over it when the list exceeds the available space. The same list remains in the tooltip.
+
+When no hard restrictions are violated, the display collapses to the two benefit lines and returns the unused space to the offer list.
