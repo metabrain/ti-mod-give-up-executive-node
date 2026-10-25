@@ -39,8 +39,13 @@ namespace GiveUpNation
                 var postfix = new HarmonyMethod(typeof(TradeAcceptanceRuntime), nameof(Refresh));
                 harmony.Patch(AccessTools.Method(typeof(DiplomacyController), "EvaluateTrade"), postfix: postfix);
                 harmony.Patch(AccessTools.Method(typeof(DiplomacyController), "Setup"), postfix: postfix);
+                harmony.Patch(AccessTools.Method(typeof(DiplomacyController), "LoadBankValues"),
+                    prefix: new HarmonyMethod(typeof(TreatyTooltips), nameof(TreatyTooltips.BeforeBankRefresh)),
+                    postfix: new HarmonyMethod(typeof(TreatyTooltips), nameof(TreatyTooltips.Attach)));
+                harmony.Patch(AccessTools.Method(typeof(DiplomacyController), "Setup"),
+                    postfix: new HarmonyMethod(typeof(TreatyTooltips), nameof(TreatyTooltips.Attach)));
                 foreach (var c in Resources.FindObjectsOfTypeAll<DiplomacyController>())
-                    if (c.gameObject.scene.IsValid() && c.gameObject.activeInHierarchy) Refresh(c);
+                    if (c.gameObject.scene.IsValid() && c.gameObject.activeInHierarchy) { Refresh(c); TreatyTooltips.Attach(c); }
             }
             catch (Exception e) { Fail(e); }
         }
@@ -104,7 +109,7 @@ namespace GiveUpNation
         {
             harmony?.UnpatchAll(Owner); harmony = null;
             foreach (var ui in views.ToArray()) if (ui != null) ui.Cleanup();
-            views.Clear(); failed = false;
+            views.Clear(); TreatyTooltips.ResetAll(); failed = false;
         }
     }
 }

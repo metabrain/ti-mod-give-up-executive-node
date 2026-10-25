@@ -209,3 +209,25 @@ The breakdown refreshes when the game evaluates the offer, with no periodic scor
 Violated trade restrictions also appear as a numbered list below the benefits. The area expands for multiple restrictions; scroll over it when the list exceeds the available space. The same list remains in the tooltip.
 
 When no hard restrictions are violated, the display collapses to the two benefit lines and returns the unused space to the offer list.
+
+Travel calculations respect all active filters in Solar System and Prospecting. Changing the matching destinations clears the current calculation; click Travel again to calculate the new filtered list.
+
+### Treaty hover conditions (0.3.21)
+
+Hover over non-aggression pacts, truces, intelligence sharing or intelligence exchange in either trade bank or the offer table to see native descriptions plus eligibility and strategic-willingness checks. Informational rows remain available when a treaty is unavailable, including when eligibility passes but willingness fails. Checks show hate limits, strategic jealousy, faction-war goals/enemies, ideology, victory conditions, spies, intelligence partners and AI self-assessment. These expose internal information for debugging; treaty decisions are unchanged. Diagnostics are calculated on hover, with no periodic scoring. Disable/unload restores owned tooltip delegates and informational-row visibility. Live hover, layout and reopening tests remain necessary.
+
+### Scuttle propellant recovery (0.3.22)
+
+Scuttling at your own shipyard now recovers 100% of the resources represented by remaining propellant, alongside the native construction refund (normally25%). It uses exactly the native shipyard eligibility, including its inactive-yard allowance; refuelling-only facilities and foreign stations do not qualify. Burned propellant is not refunded. Native resource conversion applies current faction modifiers and the ship's fuel mix. Preview and execution share the same calculation, and the scuttle action description reflects the refund. No new save data is added. Live preview/payment validation is pending.
+
+### Scuttle unloading delay (0.3.23)
+
+At an eligible own shipyard, ships with remaining propellant now wait for unloading before scuttling and paying the refund. Duration scales with fuel remaining, station resupply capacity, and officer resupply modifiers. Selected ships unload sequentially, with a time estimate in the selection panel; the fleet is occupied until the pending operations finish or are canceled. Empty ships and scuttling elsewhere remain immediate. Canceling preserves the ship and its fuel, with no refund. Pending orders use native saved fleet operations; disabling the mod cancels currently loaded orders. Loading a pending order without the mod lets it expire harmlessly. Restart after installation. Live timing, cancellation, and save/reload still require in-game testing.
+
+### Standard local installer
+
+Use `python3 tools/install.py --version 0.3.23` for future deployments. Omitting `--version` selects the version in `mod.project.json`; alternatively pass `--package path/to/package.zip`. Use `--dry-run` to validate without writing. Set `TI_GAME_DIR` or pass `--game-dir` to override the local Steam installation path. The script does not launch or stop the game; restart after replacing a loaded DLL.
+
+The installer validates the five-file package allowlist, manifest, build hashes and installed game assembly. It compares installed files with their prior package, backs up only owned files under `artifacts/backups`, preserves unrelated files, verifies installed bytes and rolls back a failed copy. Unexpected edits or partial installations stop deployment. Keep previous package ZIPs in `artifacts` (or `--artifacts-dir`). New builds retain per-package `.evidence.json` files; older packages can use matching `build-evidence.json` or `--evidence`. Use this script instead of creating version-specific temporary installers.
+
+Installer regression tests: `python3 -m unittest discover -s tests/Installer -v`.

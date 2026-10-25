@@ -17,7 +17,7 @@ def main():
     parser.add_argument('--no-restore', action='store_true', help='Use previously restored packages')
     args = parser.parse_args()
     game = args.game_dir.resolve()
-    for directory in (ROOT / 'tests/TradeAcceptance/bin', ROOT / 'tests/TradeAcceptance/obj', ROOT / 'tests/ProspectingTravel/bin', ROOT / 'tests/ProspectingTravel/obj'):
+    for directory in (ROOT / 'tests/ScuttleFuel/bin', ROOT / 'tests/ScuttleFuel/obj', ROOT / 'tests/TradeAcceptance/bin', ROOT / 'tests/TradeAcceptance/obj', ROOT / 'tests/ProspectingTravel/bin', ROOT / 'tests/ProspectingTravel/obj'):
         resolved = directory.resolve()
         if not resolved.is_relative_to(ROOT) or resolved.is_relative_to(game):
             parser.error(f'Output must remain in the workspace, outside the game: {resolved}')
@@ -41,6 +41,7 @@ def main():
     run('build', 'src/Mod/Mod.csproj', '-c', 'Release', '--nologo', f'-p:TerraInvictaDir={game}', *restore)
     run('run', '--project', 'tests/ReleaseRequest.Tests.csproj', '-c', 'Release', '--nologo', *restore)
     run('run', '--project', 'tests/ProbeArrival/ProbeArrival.Tests.csproj', '-c', 'Release', '--nologo', *restore)
+    run('run', '--project', 'tests/ScuttleFuel/ScuttleFuel.Tests.csproj', '-c', 'Release', '--nologo', *restore)
     run('run', '--project', 'tests/TradeAcceptance/TradeAcceptance.Tests.csproj', '-c', 'Release', '--nologo', *restore)
     run('run', '--project', 'tests/ProspectingTravel/ProspectingTravel.Tests.csproj', '-c', 'Release', '--nologo', *restore)
     run('run', '--project', 'tests/ProspectingFilters/ProspectingFilters.Tests.csproj', '-c', 'Release', '--nologo', f'-p:TerraInvictaDir={game}', *restore)
@@ -71,12 +72,15 @@ def main():
         'modSha256': hashlib.sha256(files[dll_name].read_bytes()).hexdigest(),
         'packageSha256': hashlib.sha256(archive.read_bytes()).hexdigest(),
         'checks': ['Release build', '13 offline confirmation/action tests using game stand-ins', '17 offline probe-tooltip data/startup tests using game stand-ins', 'Prospecting status/transpiler and hate-history lifecycle checks using game stand-ins', 'History persistence using installed FullSerializer and native plain/gzip SaveStructure.Load with synthetic saves; direct production hook lifecycle checks', 'ZIP allowlist and CRC'],
-        'tradeChecks': '31 offline scoring, hard-restriction, boundary and outcome checks; live Unity layout and hover unverified',
+        'tradeChecks': '44 offline scoring, hard-restriction, boundary, outcome and treaty strategic-need checks; live Unity layout and hover unverified',
+        'scuttleChecks': 'Production adapter: full/partial tanks, mixed propellant, faction conversion modifiers, native shipyard eligibility, repeat previews, multiple ships and invalid values; 34 delay checks for timing, scheduling, cancellation, stale events and rollback; live scuttling/save-load unverified',
         'runtimeTested': False,
-        'travelChecks': 'Route choice, numeric validation, incremental queue, cancellation, blank-before-request and sorting; live solver/UI performance unverified',
+        'travelChecks': '44 checks: route choice, numeric validation, incremental queue, cancellation, filtered destinations, blank-before-request and sorting; live solver/UI performance unverified',
         'gameFilesWritten': False,
     }
-    (artifacts / 'build-evidence.json').write_text(json.dumps(evidence, indent=2) + '\n')
+    evidence_text = json.dumps(evidence, indent=2) + '\n'
+    (artifacts / 'build-evidence.json').write_text(evidence_text)
+    archive.with_suffix('.evidence.json').write_text(evidence_text)
     print(f'Package: {archive}\nNo installation or game launch performed.')
 
 if __name__ == '__main__':

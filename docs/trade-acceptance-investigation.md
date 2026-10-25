@@ -59,3 +59,9 @@ All violated restrictions appear inline as a numbered list. The restrictions vie
 
 ## 0.3.19 refinement
 Restrictions viewport now sizes from0 to140px. Empty restriction text disables the viewport and reserves only48px total for the two benefit lines and padding, restoring72px of offer-list space compared with the original fixed120px reservation.
+
+## Treaty diagnostics (0.3.21)
+
+Installed methods traced: DiplomacyController.LoadBankValues, TIFactionState.CanTradeTreaty/CanTradeNAP/CanTradeTruce/CanTradeIntelSharing, FactionGoal_NonAggressionPact.ValidNewGoal/GoalFulfilled, and AIEvaluators.GetWillingnessToTradeNAP/GetWillingnessToTradeTruce/GetWillingnessToShareIntel. Native eligibility and willingness decide the heading; read-only checks explain the constituent conditions. TreatyNeeds isolates the ordinary strategic-need branches and is covered by13 additional boundary/branch checks. Native alien alignment branches are preserved literally even where surprising. Intel permanent allies skip security and ideological-neighbor branches, but the native strategic-needs assignment still runs; diagnostics reflect that behavior.
+
+Native BodyText delegates are wrapped and preserved, refreshed after bank loading/setup, and restored only if still owned. Hidden informational rows are exposed for unavailable treaties, without enabling treaty actions. Both banks, treaty table entries and intelligence-exchange entries are covered. Exceptions fall back to the original tooltip. No native DLL, save state or trade acceptance code is altered. These methods read game caches and values only; jealousy is queried with processPeriodicChange=false. Tooltip evaluations occur on demand. Full native lifecycle and visual tests remain pending.

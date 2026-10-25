@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace GiveUpNation
 {
@@ -26,24 +27,33 @@ namespace GiveUpNation
                 : ascending ? estimate.Days : -estimate.Days;
     }
 
+    internal static class TravelDestinations
+    {
+        // Use the game's final visibility decision, including rows outside the viewport.
+        internal static TBody[] Select<TModel, TBody>(IEnumerable<TModel> models,
+            Func<TModel, bool> visible, Func<TModel, TBody> body) where TBody : class =>
+            models.Where(visible).Select(body).Where(x => x != null).Distinct().ToArray();
+    }
+
     // UI redraws and filtering must never perform route calculations.
     internal sealed class TravelSnapshot<TFleet, TBody> where TFleet : class
     {
         private TFleet fleet;
         private readonly Dictionary<TBody, TravelEstimate> values = new Dictionary<TBody, TravelEstimate>();
+        private readonly HashSet<TBody> destinations = new HashSet<TBody>();
         private readonly Queue<TBody> pending = new Queue<TBody>();
         internal int Count => values.Count;
         internal int Total { get; private set; }
         internal bool IsRunning => fleet != null && pending.Count > 0;
         internal bool IsFor(TFleet candidate) => candidate != null && ReferenceEquals(fleet, candidate);
-        internal void Clear() { fleet = null; values.Clear(); pending.Clear(); Total = 0; }
+        internal void Clear() { fleet = null; values.Clear(); pending.Clear(); destinations.Clear(); Total = 0; }
+        internal bool MatchesDestinations(IEnumerable<TBody> bodies) => fleet != null && destinations.SetEquals(bodies);
         internal TravelEstimate Get(TBody body) => values.TryGetValue(body, out var result) ? result : null;
         internal void Start(TFleet candidate, IEnumerable<TBody> bodies)
         {
             Clear();
             if (candidate == null) return;
-            var unique = new HashSet<TBody>();
-            foreach (var body in bodies) if (unique.Add(body)) pending.Enqueue(body);
+            foreach (var body in bodies) if (destinations.Add(body)) pending.Enqueue(body);
             Total = pending.Count;
             fleet = candidate;
         }

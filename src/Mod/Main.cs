@@ -27,6 +27,7 @@ namespace GiveUpNation
                 ProspectingTravelRuntime.Update(elapsed);
                 AlienHateRuntime.Update(elapsed);
                 TradeAcceptanceRuntime.Update(elapsed);
+                ScuttleFuelRuntime.Update(elapsed);
             };
             return true;
         }
@@ -45,6 +46,7 @@ namespace GiveUpNation
                     ProspectingTravelRuntime.Reset();
                     AlienHateRuntime.Reset();
                     TradeAcceptanceRuntime.Reset();
+                    ScuttleFuelRuntime.Reset();
                     AlienHateSavePersistence.Install();
                     foreach (var controller in Resources.FindObjectsOfTypeAll<NationInfoController>())
                         if (controller.gameObject.scene.IsValid()) Attach(controller);
@@ -59,6 +61,7 @@ namespace GiveUpNation
                     ProspectingFiltersRuntime.Reset();
                     AlienHateRuntime.Reset();
                     TradeAcceptanceRuntime.Reset();
+                    ScuttleFuelRuntime.Reset();
                     foreach (var ui in Resources.FindObjectsOfTypeAll<GiveUpNationUi>()) ui.Cleanup();
                     foreach (var tooltip in Resources.FindObjectsOfTypeAll<ProbeArrivalTooltip>()) tooltip.Cleanup();
                     harmony.UnpatchAll(entry.Info.Id);
@@ -74,6 +77,7 @@ namespace GiveUpNation
                 ProspectingFiltersRuntime.Reset();
                 AlienHateRuntime.Reset();
                 TradeAcceptanceRuntime.Reset();
+                ScuttleFuelRuntime.Reset();
                 harmony.UnpatchAll(entry.Info.Id);
                 foreach (var ui in Resources.FindObjectsOfTypeAll<GiveUpNationUi>()) ui.Cleanup();
                 foreach (var tooltip in Resources.FindObjectsOfTypeAll<ProbeArrivalTooltip>()) tooltip.Cleanup();

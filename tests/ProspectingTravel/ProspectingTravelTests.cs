@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Linq;
 using GiveUpNation;
 
 internal static class Tests
@@ -75,6 +76,24 @@ internal static class Tests
         Check(thrown && !snapshot.IsFor(fleet) && snapshot.Count == 0 && !snapshot.IsRunning, "Unexpected failure cancels pending work and clears partial results");
         snapshot.Start(fleet, new[] { 1 }); snapshot.Step(_ => new TravelEstimate("Calculation failed"));
         Check(snapshot.Get(1).Status == "Calculation failed", "Per-destination errors can be cached without retry storms");
+        var candidates = Enumerable.Range(0, 175).Select(i => new { Body = new object(), Visible = i < 5 }).ToArray();
+        var filtered = TravelDestinations.Select(candidates, x => x.Visible, x => x.Body);
+        Check(filtered.Length == 5, "175 models with 5 matching filters queues only 5 destinations");
+        var filteredSnapshot = new TravelSnapshot<object, object>();
+        filteredSnapshot.Start(fleet, filtered);
+        int filteredCalls = 0;
+        while (filteredSnapshot.Step(_ => { filteredCalls++; return new TravelEstimate(1, 1); })) { }
+        Check(filteredCalls == 5 && filteredSnapshot.Get(candidates[6].Body) == null, "Hidden bodies never reach solver");
+        Check(filteredSnapshot.MatchesDestinations(filtered.Reverse()), "Sorting does not invalidate a filtered snapshot");
+        Check(!filteredSnapshot.MatchesDestinations(filtered.Take(2)), "Narrowing filters invalidates snapshot");
+        Check(!filteredSnapshot.MatchesDestinations(candidates.Select(x => x.Body)), "Widening filters invalidates snapshot");
+        Check(TravelDestinations.Select(candidates, x => false, x => x.Body).Length == 0, "Empty filters queue nothing");
+        var shared = candidates[0].Body;
+        var sites = new[] { new { Visible = true, Body = shared }, new { Visible = true, Body = shared }, new { Visible = false, Body = new object() }, new { Visible = true, Body = (object)null } };
+        Check(TravelDestinations.Select(sites, x => x.Visible, x => x.Body).SequenceEqual(new[] { shared }), "Visible sites deduplicate parent bodies and skip missing bodies");
+        filteredSnapshot.Start(fleet, filtered); filteredSnapshot.Step(_ => new TravelEstimate(1, 1));
+        if (!filteredSnapshot.MatchesDestinations(filtered.Take(1))) filteredSnapshot.Clear();
+        Check(!filteredSnapshot.Step(_ => throw new Exception()), "Filter changes cancel pending solver work");
         Console.WriteLine(checks + " prospecting-travel checks passed (route selection and snapshot lifecycle; no live solver).");
     }
 }

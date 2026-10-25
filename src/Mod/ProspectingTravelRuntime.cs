@@ -110,6 +110,10 @@ namespace GiveUpNation
                         postfix: new HarmonyMethod(typeof(ProspectingTravelRuntime), nameof(SiteRefreshed)));
                     harmony.Patch(AccessTools.Method(typeof(IntelHabSiteListItemController), "Refresh"),
                         postfix: new HarmonyMethod(typeof(ProspectingTravelRuntime), nameof(SiteRefreshed)));
+                    harmony.Patch(AccessTools.Method(typeof(IntelScreenController), "UpdateSpaceBodiesListVisibility"),
+                        postfix: new HarmonyMethod(typeof(ProspectingTravelRuntime), nameof(BodyVisibilityChanged)));
+                    harmony.Patch(AccessTools.Method(typeof(IntelScreenController), "UpdateHabSitesListVisibility"),
+                        postfix: new HarmonyMethod(typeof(ProspectingTravelRuntime), nameof(SiteVisibilityChanged)));
                     harmony.Patch(AccessTools.Method(typeof(TabbedPaneController), "Show"),
                         postfix: new HarmonyMethod(typeof(ProspectingTravelRuntime), nameof(TabShown)));
                 }
@@ -150,6 +154,7 @@ namespace GiveUpNation
             {
                 if (selectedFleet == null || selectedFleet.deleted || selectedFleet.archived || selectedFleet.faction != player)
                 { header.text = "Travel: select one of your fleets first"; return; }
+                InvalidateChangedDestinations();
                 if (snapshot.IsRunning) return;
                 if (!snapshot.IsFor(selectedFleet)) { StartCalculation(); return; }
                 ascending = !ascending;
@@ -179,6 +184,35 @@ namespace GiveUpNation
         private static double SortKey(TISpaceBodyState body) =>
             TravelEstimate.SortKey(body == null ? null : snapshot.Get(body), ascending);
 
+        private static TISpaceBodyState[] VisibleDestinations() => displayedTab == controller.habSiteTab
+            ? TravelDestinations.Select(controller.habSiteModels,
+                m => m.IntelScreenHabSiteListItemData != null && m.IntelScreenHabSiteListItemData.showInList,
+                m => m.IntelScreenHabSiteListItemData.habSiteState?.parentBody)
+            : TravelDestinations.Select(controller.spacebodyModels,
+                m => m.IntelScreenSpacebodyListItemData != null && m.IntelScreenSpacebodyListItemData.showInList,
+                m => m.IntelScreenSpacebodyListItemData.spacebodyState);
+
+        private static void BodyVisibilityChanged(IntelScreenController __instance) => VisibilityChanged(__instance, false);
+        private static void SiteVisibilityChanged(IntelScreenController __instance) => VisibilityChanged(__instance, true);
+        private static void VisibilityChanged(IntelScreenController current, bool sites)
+        {
+            if (!Main.Enabled || failed || controller != current || header == null
+                || displayedTab != (sites ? current.habSiteTab : current.spaceBodyTab)) return;
+            try { InvalidateChangedDestinations(); }
+            catch (Exception exception) { Fail(exception); }
+        }
+
+        private static void InvalidateChangedDestinations()
+        {
+            if (!snapshot.IsFor(selectedFleet) || snapshot.MatchesDestinations(VisibleDestinations())) return;
+            snapshot.Clear();
+            calculationTimer?.Stop();
+            header.text = "Travel: filters changed | click the Travel column to calculate";
+            columnHeader.SetText("Travel (days | km/s)");
+            RefreshVisibleRows(displayedTab == controller.habSiteTab);
+            scheduler.Reset();
+        }
+
         private static void StartCalculation()
         {
             var fleet = selectedFleet;
@@ -186,10 +220,7 @@ namespace GiveUpNation
             calculationTimer = Stopwatch.StartNew();
             calculationErrors = 0;
             ascending = true;
-            var bodies = (displayedTab == controller.habSiteTab
-                ? controller.habSiteModels.Select(m => m.IntelScreenHabSiteListItemData.habSiteState?.parentBody)
-                : controller.spacebodyModels.Select(m => m.IntelScreenSpacebodyListItemData.spacebodyState))
-                .Where(b => b != null).ToArray();
+            var bodies = VisibleDestinations();
             Main.Info("Travel calculation started for " + (displayedTab == controller.habSiteTab ? "Prospecting" : "Solar System")
                 + "; " + fleet.displayName + ".");
             snapshot.Start(fleet, bodies);

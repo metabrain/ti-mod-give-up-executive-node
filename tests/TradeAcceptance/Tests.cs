@@ -37,6 +37,19 @@ class Tests
         Check(TradeAcceptanceText.CountBlocker(0,0,5,1) == "Orgs: AI gives 5; maximum 3");
         Check(TradeAcceptanceText.IncomeBlocker("MC",-11,10,true).Contains("+10.0 -> -1.0; minimum 0"));
         Check(TradeAcceptanceText.IncomeBlocker("Money",-5,0,false).Contains("0.0 -> -5.0"));
+        Check(TreatyNeeds.Nap("Losing") && TreatyNeeds.Nap("LosingBig"));
+        Check(!TreatyNeeds.Nap("Even"));
+        Check(!TreatyNeeds.Truce("Even", 2, true));
+        Check(TreatyNeeds.Truce("Even", 3, true));
+        Check(!TreatyNeeds.Truce("Even", 3, false));
+        Check(TreatyNeeds.Intel("LosingBig", false, false, false, false, false, false));
+        Check(TreatyNeeds.Intel("Losing", true, true, false, false, false, false));
+        Check(!TreatyNeeds.Intel("Losing", false, true, false, false, false, false));
+        Check(!TreatyNeeds.Intel("Even", true, true, false, false, false, false));
+        Check(TreatyNeeds.Intel("Even", true, false, true, false, false, false));
+        Check(TreatyNeeds.Intel("Even", false, false, false, true, true, false));
+        Check(!TreatyNeeds.Intel("Winning", false, false, false, true, true, false));
+        Check(TreatyNeeds.Intel("Winning", false, false, false, true, true, true));
         Console.WriteLine(count + " trade acceptance checks passed.");
     }
 }
